@@ -1,0 +1,136 @@
+type Query {
+  plans: [Plan]
+  weeks: [Week]
+  phases: [Phase]
+  sessions: [Session]
+}
+
+type Mutation {
+  createPlan(title: String!): Plan!
+  createPhase(
+    title: String
+    planId: ID!
+    order: Int!
+    description: String
+  ): Phase!
+  createWeek(phaseId: ID!, order: Int!, description: String): Week!
+  createSession(
+    weekId: ID!
+    day: Int!
+    title: String
+    purpose: String
+    description: String
+  ): Session!
+  signup(email: String!, password: String!, name: String!): AuthPayload
+  login(email: String!, password: String!): AuthPayload
+}
+
+type AuthPayload {
+  token: String
+  user: User
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  password: String!
+  plans: [Plan!]!
+}
+
+type Plan {
+  id: ID!
+  title: String!
+  description: String
+  createdBy: User!
+  phases: [Phase!]!
+}
+
+type Phase {
+  id: ID!
+  title: String!
+  order: Int!
+  description: String
+  createdBy: User!
+  plan: Plan!
+  weeks: [Week!]!
+}
+
+type Week {
+  id: ID!
+  description: String
+  order: Int
+  createdBy: User!
+  sessions: [Session!]!
+  phase: Phase
+}
+
+type Session {
+  id: ID!
+  title: String
+  purpose: String
+  day: Int
+  createdBy: User!
+  description: String
+}
+
+type AdvancedSession {
+  id: ID!
+  title: String
+  purpose: String
+  day: Int
+  createdBy: User!
+  week: [Week!]!
+  sets: [Set!]!
+  pauses: [Pause!]!
+}
+
+type Set {
+  id: ID!
+  title: String!
+  order: Int!
+  bouts: [Bout!]!
+  pauses: [Pause!]!
+  session: Session
+}
+
+type Pause {
+  id: ID!
+  duration: Int
+  length: Int
+  order: Int!
+  type: PauseType!
+  set: Set
+  session: Session
+}
+
+enum PauseType {
+  Rest
+  Active
+}
+
+type Intensity {
+  id: ID!
+  title: String!
+  description: String
+  type: IntensityType
+  coefficient: Float!
+}
+
+type Bout {
+  intensity: Intensity
+  duration: Int
+  length: Int
+  order: Int!
+  set: Set!
+}
+
+enum IntensityType {
+  Interval
+  Hard
+  Repetition
+  Easy
+  Long
+  Threshold
+  MarathonPace
+}
