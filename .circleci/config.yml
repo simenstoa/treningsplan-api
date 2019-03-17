@@ -4,6 +4,10 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com
-      - run: docker build --rm=false -t registry.heroku.com/treningsplan-api/web .
-      - run: docker push registry.heroku.com/treningsplan-api/web:latest
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: |
+          TAG=0.1.$CIRCLE_BUILD_NUM
+          docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com
+          docker build --rm=false -t registry.heroku.com/treningsplan-api/web:$TAG .
+          docker push registry.heroku.com/treningsplan-api/web:$TAG
