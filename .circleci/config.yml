@@ -4,6 +4,6 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: docker login --email=$HEROKU_LOGIN --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com
+      - run: docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com
       - run: docker build --rm=false -t registry.heroku.com/treningsplan-api/web .
       - run: docker push registry.heroku.com/treningsplan-api/web:latest
