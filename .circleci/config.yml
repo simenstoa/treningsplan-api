@@ -1,13 +1,29 @@
 version: 2
 jobs:
-  build:
-    machine: true
+  build: # runs not using Workflows must have a `build` job as entry point
+    working_directory: . # directory where steps will run
+    docker: # run the steps with Docker
+      - image: circleci/node:9.9 # ...with this image as the primary container; this is where all `steps` will run
+    steps: # a collection of executable commands
+      - checkout # special step to check out source code to working directory
+      - run:
+          name: update-npm
+          command: "sudo npm install -g npm@latest"
+      - restore_cache: # special step to restore the dependency cache
+          # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-npm-wee
+          command: npm install
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+  deploy:
+    docker:
+      - image: google/cloud-sdk
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
       - run: |
-          TAG=0.1.$CIRCLE_BUILD_NUM
-          docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com
-          docker build --rm=false -t registry.heroku.com/treningsplan-api/web:$TAG .
-          docker push registry.heroku.com/treningsplan-api/web:$TAG
+          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+          gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+          gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}

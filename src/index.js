@@ -2,6 +2,8 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+const port = process.env.PORT || 4000;
+
 const { GraphQLServer } = require("graphql-yoga");
 const { prisma } = require("./generated/prisma-client");
 const Mutation = require("./resolvers/Mutation");
@@ -21,6 +23,9 @@ const resolvers = {
 };
 
 const server = new GraphQLServer({
+  options: {
+    port
+  },
   typeDefs: "./src/schema.graphql",
   resolvers,
   context: request => {
@@ -30,4 +35,4 @@ const server = new GraphQLServer({
     };
   }
 });
-server.start(() => console.log(`Server is running on http://localhost:4000`));
+server.start(() => console.log(`Server is running on port ${port}`));
