@@ -5,6 +5,8 @@ jobs:
     docker: # run the steps with Docker
       - image: circleci/node:9.9 # ...with this image as the primary container; this is where all `steps` will run
     steps: # a collection of executable commands
+      - attach_workspace:
+          at: ./
       - checkout # special step to check out source code to working directory
       - run:
           name: update-npm
@@ -19,12 +21,12 @@ jobs:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-      - store_artifacts:
-          path: ./
   deploy:
     docker:
       - image: google/cloud-sdk
     steps:
+      - attach_workspace:
+          at: ./
       - run: |
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
