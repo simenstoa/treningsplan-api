@@ -1,0 +1,18 @@
+{
+  "name": "treningsplan",
+  "version": "1.0.0",
+  "description": "Lage din egen treningsplan",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "elm-app start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "create-elm-app": "^3.0.6"
+  }
+}
