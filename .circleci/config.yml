@@ -20,7 +20,7 @@ jobs:
           paths:
             - ./node_modules
       - store_artifacts:
-          path: ~/
+          path: ./
   deploy:
     docker:
       - image: google/cloud-sdk
