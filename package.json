@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "scripts": {
-    "prisma": "prisma deploy --dotenv .env"
-  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "dotenv": "^7.0.0",
