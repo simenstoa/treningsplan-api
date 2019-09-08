@@ -11,3 +11,6 @@ yarn-error.log*
 # gcloud files
 .gcloudignore
 app.yaml
+
+# idea
+.idea
