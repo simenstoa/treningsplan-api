@@ -8,9 +8,5 @@ node_modules/
 yarn-debug.log*
 yarn-error.log*
 
-# gcloud files
-.gcloudignore
-app.yaml
-
 # idea
 .idea
