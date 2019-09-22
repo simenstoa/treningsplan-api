@@ -22,7 +22,7 @@ var intensityZoneType = graphql.NewObject(
 	},
 )
 
-func InitIntensityZones(resolver func(p graphql.ResolveParams) (interface{}, error)) *graphql.Field {
+func InitIntensityZones(resolver graphql.FieldResolveFn) *graphql.Field {
 	return &graphql.Field{
 		Type: graphql.NewList(intensityZoneType),
 		Resolve: resolver,
