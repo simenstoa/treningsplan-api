@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"goapi/airtable"
+	"goapi/config"
 	gqlschema "goapi/gql-schema"
+	"goapi/intensity"
 	"log"
 	"net/http"
 
@@ -9,7 +13,19 @@ import (
 )
 
 func main() {
-	var schema, err = gqlschema.InitSchema()
+	cfg := config.FromEnv()
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "is_startup", true)
+
+	airtableClient, err := airtable.NewClient(ctx, cfg.AirtableSecret)
+	if err != nil {
+		log.Fatalf("failed to create airtable client, error: %v", err)
+	}
+
+	resolvableIntensity := intensity.New(airtableClient)
+
+	schema, err := gqlschema.InitSchema(resolvableIntensity)
 	if err != nil {
 		log.Fatalf("failed to create new schema, error: %v", err)
 	}
