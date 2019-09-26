@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
+	"text/template"
 	"time"
 )
 
@@ -34,7 +36,8 @@ type AirtableRecord struct {
 type Client interface {
 	GetAll(ctx context.Context, table Table, mapper airtableResultMapper) error
 	Get(ctx context.Context, table Table, id string, mapper airtableRecordMapper) error
-	GetByIds(ctx context.Context, table Table, parentTable Table, parentId string, result airtableResultMapper) error
+	GetByParentId(ctx context.Context, table Table, parentTable Table, parentId string, result airtableResultMapper) error
+	GetByIds(ctx context.Context, table Table, ids []string, result airtableResultMapper) error
 }
 
 type airtableResultMapper interface {
@@ -61,6 +64,38 @@ func NewClient(ctx context.Context, apiSecret string) (Client, error) {
 
 func (c *airTableClient) GetAll(ctx context.Context, table Table, result airtableResultMapper) error {
 	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table), nil)
+	if err != nil {
+		log.Println("could not create request")
+		return err
+	}
+
+	body, err := c.fetchResult(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	var airtableResult AirtableResult
+	err = json.Unmarshal(body, &airtableResult)
+	if err != nil {
+		log.Println("error decoding result")
+		return err
+	}
+
+	err = result.MapAirtableResult(airtableResult)
+	if err != nil {
+		log.Println("error mapping airtable result")
+		return err
+	}
+	return nil
+}
+
+func (c *airTableClient) GetByIds(ctx context.Context, table Table, ids []string, result airtableResultMapper) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	filter := template.URLQueryEscaper("OR({Id}=\""+strings.Join(ids,"\",{Id}=\"")+"\")")
+	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table)+"?filterByFormula="+filter, nil)
 	if err != nil {
 		log.Println("could not create request")
 		return err
@@ -113,8 +148,9 @@ func (c *airTableClient) Get(ctx context.Context, table Table, id string, result
 	return nil
 }
 
-func (c *airTableClient) GetByIds(ctx context.Context, table Table, parentTable Table, parentId string, result airtableResultMapper) error {
-	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table)+"?filterByFormula=\""+string(parentTable)+"="+parentId+"\"", nil)
+func (c *airTableClient) GetByParentId(ctx context.Context, table Table, parentTable Table, parentId string, result airtableResultMapper) error {
+	filter := template.URLQueryEscaper("{"+string(parentTable)+"}=\""+parentId+"\"")
+	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table)+"?filterByFormula="+filter, nil)
 	if err != nil {
 		log.Println("could not create request")
 		return err

@@ -2,17 +2,23 @@ package gqlschema
 
 import (
 	"github.com/graphql-go/graphql"
-	gqlcommon "goapi/gql-common"
+	"goapi/bouts"
+	"goapi/intensity-zones"
+	"goapi/workouts"
+	workoutbouts "goapi/workout-bouts"
 )
 
-func InitSchema(intensity gqlcommon.Resolvable, workout gqlcommon.Resolvable, workoutBouts gqlcommon.Resolvable, bout gqlcommon.Resolvable) (graphql.Schema, error) {
+func InitSchema(resolvableIntensityZones intensityzones.Resolvable, resolvableWorkout workouts.Resolvable, resolvableWorkoutBouts workoutbouts.Resolvable, resolvableBout bouts.Resolvable) (graphql.Schema, error) {
+	boutType := boutType(resolvableIntensityZones)
+	workoutType := workoutType(resolvableWorkoutBouts, resolvableBout, boutType)
+
 	var queryType = graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "Query",
 			Fields: graphql.Fields{
-				"intensityZones": InitIntensityZones(intensity.GetAll()),
-				"workouts":       InitWorkouts(workout.GetAll(), workoutBouts.GetByIds, bout.GetById),
-				"workout":        InitWorkout(workout.Get(), workoutBouts.GetByIds, bout.GetById),
+				"intensityZones": InitIntensityZones(resolvableIntensityZones),
+				"workouts":       workoutsField(resolvableWorkout, workoutType),
+				"workout":        workoutField(resolvableWorkout, workoutType),
 			},
 		})
 

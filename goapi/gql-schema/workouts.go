@@ -1,41 +1,50 @@
 package gqlschema
 
 import (
-	"context"
 	"errors"
 	"github.com/graphql-go/graphql"
-	"goapi/bout"
-	gqlcommon "goapi/gql-common"
-	"goapi/workout"
-	workoutbouts "goapi/workout-bouts"
+	"goapi/bouts"
+	"goapi/gql-common"
+	"goapi/intensity-zones"
+	"goapi/workout-bouts"
+	"goapi/workouts"
 )
 
-var boutType = graphql.NewObject(graphql.ObjectConfig{
-	Name: "Bout",
-	Fields: graphql.Fields{
-		"id": &graphql.Field{
-			Type: graphql.String,
+func boutType(resolvableIntensityZones intensityzones.Resolvable) *graphql.Object {
+	return graphql.NewObject(graphql.ObjectConfig{
+		Name: "Bout",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type: graphql.String,
+			},
+			"order": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"name": &graphql.Field{
+				Type: graphql.String,
+			},
+			"duration": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"length": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"type": &graphql.Field{
+				Type: graphql.String,
+			},
+			"intensity": &graphql.Field{
+				Type: intensityZoneType,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					intensities := p.Source.(boutGqlType).Intensity
+					if len(intensities) != 1 {
+						return nil, nil
+					}
+					return resolvableIntensityZones.Get(p.Context, intensities[0])
+				},
+			},
 		},
-		"order": &graphql.Field{
-			Type: graphql.Int,
-		},
-		"name": &graphql.Field{
-			Type: graphql.String,
-		},
-		"duration": &graphql.Field{
-			Type: graphql.Int,
-		},
-		"length": &graphql.Field{
-			Type: graphql.Int,
-		},
-		"type": &graphql.Field{
-			Type: graphql.String,
-		},
-		"intensity": &graphql.Field{
-			Type: graphql.NewList(graphql.String),
-		},
-	},
-})
+	})
+}
 
 type boutGqlType struct {
 	Id        string
@@ -47,7 +56,7 @@ type boutGqlType struct {
 	Intensity []string
 }
 
-func workoutFields(getWorkoutBoutsByIds func(ctx context.Context, ids []string) (interface{}, error), getBout func(ctx context.Context, id string) (interface{}, error)) graphql.Fields {
+func workoutFields(resolvableWorkoutBouts workoutbouts.Resolvable, resolvableBouts bouts.Resolvable, boutType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.String,
@@ -64,25 +73,34 @@ func workoutFields(getWorkoutBoutsByIds func(ctx context.Context, ids []string) 
 		"bouts": &graphql.Field{
 			Type: graphql.NewList(boutType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				ids := p.Source.(workout.Workout).WorkoutBouts
-				workoutBouts, err := getWorkoutBoutsByIds(p.Context, ids)
+				parentId := p.Source.(workouts.Workout).Id
+				workoutBouts, err := resolvableWorkoutBouts.GetByParentId(p.Context, parentId)
 				if err != nil {
 					return nil, err
 				}
-				var bouts []boutGqlType
-				for _, workoutBout := range workoutBouts.(workoutbouts.Result) {
-					boutIds := workoutBout.Bout
-					if len(boutIds) != 1 {
+				var boutIds []string
+				for _, workoutBout := range workoutBouts {
+					if len(workoutBout.Bout) != 1 {
 						return nil, errors.New("invalid workout bouts")
 					}
-					b, err := getBout(p.Context, boutIds[0])
-					if err != nil {
-						return nil, err
-					}
-					bt := b.(bout.Bout)
-					bouts = append(bouts, boutGqlType{
+					id := workoutBout.Bout[0]
+					boutIds = append(boutIds, id)
+				}
+				bts, err := resolvableBouts.GetByIds(p.Context, boutIds)
+				if err != nil {
+					return nil, err
+				}
+				btsMap := make(map[string]bouts.Bout)
+				for _, bt := range bts {
+					btsMap[bt.Id] = bt
+				}
+				var gqlBouts []boutGqlType
+				for _, wbt := range workoutBouts {
+					bt := btsMap[wbt.Bout[0]]
+
+					gqlBouts = append(gqlBouts, boutGqlType{
 						Id:        bt.Id,
-						Order:     workoutBout.Order,
+						Order:     wbt.Order,
 						Name:      bt.Name,
 						Length:    bt.Length,
 						Duration:  bt.Duration,
@@ -90,56 +108,46 @@ func workoutFields(getWorkoutBoutsByIds func(ctx context.Context, ids []string) 
 						Intensity: bt.Intensity,
 					})
 				}
-				return bouts, nil
+
+				return gqlBouts, nil
 			},
 		},
 	}
 }
 
-func workoutsType(getWorkoutBoutsForWorkout func(ctx context.Context, ids []string) (interface{}, error), getBout func(ctx context.Context, id string) (interface{}, error)) *graphql.Object {
-	return graphql.NewObject(
-		graphql.ObjectConfig{
-			Name:   "Workouts",
-			Fields: workoutFields(getWorkoutBoutsForWorkout, getBout),
-		},
-	)
-}
-
-func workoutType(getWorkoutBoutsForWorkout func(ctx context.Context, ids []string) (interface{}, error), getBout func(ctx context.Context, id string) (interface{}, error)) *graphql.Object {
+func workoutType(resolvableWorkoutBouts workoutbouts.Resolvable, resolvableBouts bouts.Resolvable, boutType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Workout",
-			Fields: workoutFields(getWorkoutBoutsForWorkout, getBout),
+			Fields: workoutFields(resolvableWorkoutBouts, resolvableBouts, boutType),
 		},
 	)
 }
 
-func InitWorkouts(getAll graphql.FieldResolveFn, getWorkoutBoutsForWorkout func(ctx context.Context, ids []string) (interface{}, error), getBout func(ctx context.Context, id string) (interface{}, error)) *graphql.Field {
+func workoutsField(resolvableWorkout workouts.Resolvable, workoutType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type:    graphql.NewList(workoutsType(getWorkoutBoutsForWorkout, getBout)),
-		Resolve: getAll,
+		Type:    graphql.NewList(workoutType),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return resolvableWorkout.GetAll(p.Context)
+		},
 	}
 }
 
-func InitWorkout(get graphql.FieldResolveFn, getWorkoutBoutsForWorkout func(ctx context.Context, ids []string) (interface{}, error), getBout func(ctx context.Context, id string) (interface{}, error)) *graphql.Field {
+func workoutField(resolvableWorkout workouts.Resolvable, workoutType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type: workoutType(getWorkoutBoutsForWorkout, getBout),
+		Type: workoutType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			id, err := gqlcommon.GetId(p)
 			if err != nil {
 				return nil, err
 			}
-			if id == "" {
-				return nil, errors.New("id not found")
-			} else {
-				return get(p)
-			}
+			return resolvableWorkout.Get(p.Context, id)
 		},
 		Args: map[string]*graphql.ArgumentConfig{
 			"id": {
 				Type:         graphql.String,
-				DefaultValue: "",
-				Description:  "Id for the workout",
+				DefaultValue: nil,
+				Description:  "The id of the workout",
 			},
 		},
 	}

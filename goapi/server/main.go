@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"goapi/airtable"
-	"goapi/bout"
+	"goapi/bouts"
 	"goapi/config"
 	gqlschema "goapi/gql-schema"
-	"goapi/intensity"
-	"goapi/workout"
+	"goapi/intensity-zones"
+	"goapi/workouts"
 	workoutbouts "goapi/workout-bouts"
 	"log"
 	"net/http"
@@ -26,10 +26,10 @@ func main() {
 		log.Fatalf("failed to create airtable client, error: %v", err)
 	}
 
-	resolvableIntensity := intensity.NewResolvable(airtableClient)
-	resolvableWorkout := workout.NewResolvable(airtableClient)
+	resolvableIntensity := intensityzones.NewResolvable(airtableClient)
+	resolvableWorkout := workouts.NewResolvable(airtableClient)
 	resolvableWorkoutBouts := workoutbouts.NewResolvable(airtableClient)
-	resolvableBout := bout.NewResolvable(airtableClient)
+	resolvableBout := bouts.NewResolvable(airtableClient)
 
 	schema, err := gqlschema.InitSchema(resolvableIntensity, resolvableWorkout, resolvableWorkoutBouts, resolvableBout)
 	if err != nil {
