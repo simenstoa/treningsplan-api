@@ -2,7 +2,7 @@ package gqlschema
 
 import (
 	"github.com/graphql-go/graphql"
-	"goapi/intensity-zones"
+	"goapi/resolvables/intensity-zones"
 )
 
 var intensityZoneType = graphql.NewObject(
@@ -27,7 +27,7 @@ var intensityZoneFields = graphql.Fields{
 	},
 }
 
-func InitIntensityZones(resolvableIntensityZones intensityzones.Resolvable) *graphql.Field {
+func intensityZonesField(resolvableIntensityZones intensityzones.Resolvable) *graphql.Field {
 	return &graphql.Field{
 		Type:    graphql.NewList(intensityZoneType),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {

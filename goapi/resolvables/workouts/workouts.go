@@ -12,36 +12,46 @@ type Workout struct {
 	Name         string   `json:"name,omitempty"`
 	Purpose      string   `json:"purpose,omitempty"`
 	Description  string   `json:"description,omitempty"`
-	WorkoutBouts []string `json:"workoutBouts,omitempty"`
+	Distance     int      `json:"distance,omitempty"`
 }
 
 type Workouts []Workout
 
-type privateWorkout struct {
+type resolvable struct {
 	airtable.Client
 }
 
 type Resolvable interface {
 	GetAll(ctx context.Context) (Workouts, error)
 	Get(ctx context.Context, id string) (Workout, error)
+	GetByIds(ctx context.Context, ids []string) (Workouts, error)
 }
 
 func NewResolvable(airtableClient airtable.Client) Resolvable {
-	return privateWorkout{airtableClient}
+	return resolvable{airtableClient}
 }
 
-func (i privateWorkout) GetAll(ctx context.Context) (Workouts, error) {
+func (r resolvable) GetAll(ctx context.Context) (Workouts, error) {
 	var workouts Workouts
-	err := i.Client.GetAll(ctx, airtable.Workout, &workouts)
+	err := r.Client.GetAll(ctx, airtable.Workout, &workouts)
 	if err != nil {
 		return Workouts{}, err
 	}
 	return workouts, nil
 }
 
-func (i privateWorkout) Get(ctx context.Context, id string) (Workout, error) {
+func (r resolvable) GetByIds(ctx context.Context, ids []string) (Workouts, error) {
+	var workouts Workouts
+	err := r.Client.GetByIds(ctx, airtable.Workout, ids, &workouts)
+	if err != nil {
+		return Workouts{}, err
+	}
+	return workouts, nil
+}
+
+func (r resolvable) Get(ctx context.Context, id string) (Workout, error) {
 	var result Workout
-	err := i.Client.Get(ctx, airtable.Workout, id, &result)
+	err := r.Client.Get(ctx, airtable.Workout, id, &result)
 	if err != nil {
 		return Workout{}, err
 	}
@@ -62,19 +72,10 @@ func (res *Workouts) MapAirtableResult(result airtable.AirtableResult) error {
 }
 
 func (res *Workout) MapAirtableRecord(record airtable.AirtableRecord) error {
-	var workout Workout
-	err := json.Unmarshal(record.Fields, &workout)
+	err := json.Unmarshal(record.Fields, res)
 	if err != nil {
 		log.Println("could not unmarshall record")
 		return err
-	}
-
-	*res = Workout{
-		Id:           record.Id,
-		Name:         workout.Name,
-		Description:  workout.Description,
-		Purpose:      workout.Purpose,
-		WorkoutBouts: workout.WorkoutBouts,
 	}
 
 	return nil

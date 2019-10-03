@@ -20,8 +20,9 @@ type Table string
 const (
 	Intensity    Table = "Intensity"
 	Workout      Table = "Workout"
-	WorkoutBouts Table = "WorkoutBouts"
-	Bout         Table = "Bout"
+	Week         Table = "Week"
+	Day          Table = "Day"
+	Plan         Table = "Plan"
 )
 
 type AirtableResult struct {
@@ -56,7 +57,7 @@ type airTableClient struct {
 func NewClient(ctx context.Context, apiSecret string) (Client, error) {
 	return &airTableClient{
 		client: &http.Client{
-			Timeout: 3 * time.Second,
+			Timeout: 20 * time.Second,
 		},
 		apiSecret: apiSecret,
 	}, nil
@@ -94,7 +95,7 @@ func (c *airTableClient) GetByIds(ctx context.Context, table Table, ids []string
 		return nil
 	}
 
-	filter := template.URLQueryEscaper("OR({Id}=\""+strings.Join(ids,"\",{Id}=\"")+"\")")
+	filter := template.URLQueryEscaper("OR({Id}=\"" + strings.Join(ids, "\",{Id}=\"") + "\")")
 	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table)+"?filterByFormula="+filter, nil)
 	if err != nil {
 		log.Println("could not create request")
@@ -149,7 +150,7 @@ func (c *airTableClient) Get(ctx context.Context, table Table, id string, result
 }
 
 func (c *airTableClient) GetByParentId(ctx context.Context, table Table, parentTable Table, parentId string, result airtableResultMapper) error {
-	filter := template.URLQueryEscaper("{"+string(parentTable)+"}=\""+parentId+"\"")
+	filter := template.URLQueryEscaper("{" + string(parentTable) + "}=\"" + parentId + "\"")
 	req, err := http.NewRequest(http.MethodGet, baseUrl+string(table)+"?filterByFormula="+filter, nil)
 	if err != nil {
 		log.Println("could not create request")
