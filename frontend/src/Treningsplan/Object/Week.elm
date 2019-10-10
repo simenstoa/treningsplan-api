@@ -20,24 +20,24 @@ import Treningsplan.Union
 
 
 {-| -}
-days : SelectionSet decodesTo Treningsplan.Object.Day -> SelectionSet (Maybe (List (Maybe decodesTo))) Treningsplan.Object.Week
+days : SelectionSet decodesTo Treningsplan.Object.Day -> SelectionSet (List decodesTo) Treningsplan.Object.Week
 days object_ =
-    Object.selectionForCompositeField "days" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "days" [] object_ (identity >> Decode.list)
 
 
 {-| -}
-distance : SelectionSet (Maybe Int) Treningsplan.Object.Week
+distance : SelectionSet Int Treningsplan.Object.Week
 distance =
-    Object.selectionForField "(Maybe Int)" "distance" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "distance" [] Decode.int
 
 
 {-| -}
-id : SelectionSet (Maybe String) Treningsplan.Object.Week
+id : SelectionSet String Treningsplan.Object.Week
 id =
-    Object.selectionForField "(Maybe String)" "id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-order : SelectionSet (Maybe Int) Treningsplan.Object.Week
+order : SelectionSet Int Treningsplan.Object.Week
 order =
-    Object.selectionForField "(Maybe Int)" "order" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "order" [] Decode.int

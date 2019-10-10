@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.Day exposing (distance, id, order, workouts)
+module Treningsplan.Object.Day exposing (day, distance, id, workouts)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -20,24 +20,24 @@ import Treningsplan.Union
 
 
 {-| -}
-distance : SelectionSet (Maybe Int) Treningsplan.Object.Day
+day : SelectionSet Int Treningsplan.Object.Day
+day =
+    Object.selectionForField "Int" "day" [] Decode.int
+
+
+{-| -}
+distance : SelectionSet Int Treningsplan.Object.Day
 distance =
-    Object.selectionForField "(Maybe Int)" "distance" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "distance" [] Decode.int
 
 
 {-| -}
-id : SelectionSet (Maybe String) Treningsplan.Object.Day
+id : SelectionSet String Treningsplan.Object.Day
 id =
-    Object.selectionForField "(Maybe String)" "id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-order : SelectionSet (Maybe Int) Treningsplan.Object.Day
-order =
-    Object.selectionForField "(Maybe Int)" "order" [] (Decode.int |> Decode.nullable)
-
-
-{-| -}
-workouts : SelectionSet decodesTo Treningsplan.Object.Workout -> SelectionSet (Maybe (List (Maybe decodesTo))) Treningsplan.Object.Day
+workouts : SelectionSet decodesTo Treningsplan.Object.Workout -> SelectionSet (List decodesTo) Treningsplan.Object.Day
 workouts object_ =
-    Object.selectionForCompositeField "workouts" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "workouts" [] object_ (identity >> Decode.list)

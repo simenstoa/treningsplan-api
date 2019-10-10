@@ -26,18 +26,18 @@ description =
 
 
 {-| -}
-id : SelectionSet (Maybe String) Treningsplan.Object.Plan
+id : SelectionSet String Treningsplan.Object.Plan
 id =
-    Object.selectionForField "(Maybe String)" "id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-name : SelectionSet (Maybe String) Treningsplan.Object.Plan
+name : SelectionSet String Treningsplan.Object.Plan
 name =
-    Object.selectionForField "(Maybe String)" "name" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "name" [] Decode.string
 
 
 {-| -}
-weeks : SelectionSet decodesTo Treningsplan.Object.Week -> SelectionSet (Maybe (List (Maybe decodesTo))) Treningsplan.Object.Plan
+weeks : SelectionSet decodesTo Treningsplan.Object.Week -> SelectionSet (List decodesTo) Treningsplan.Object.Plan
 weeks object_ =
-    Object.selectionForCompositeField "weeks" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "weeks" [] object_ (identity >> Decode.list)

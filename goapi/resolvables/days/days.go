@@ -9,7 +9,7 @@ import (
 
 type Day struct {
 	Id       string   `json:"id"`
-	Order    int      `json:"order,omitempty"`
+	Day      int      `json:"day,omitempty"`
 	Workouts []string `json:"workouts,omitempty"`
 	Distance int      `json:"distance,omitempty"`
 }

@@ -11,13 +11,13 @@ import (
 func dayFields(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvable) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.NewNonNull(graphql.String),
 		},
-		"order": &graphql.Field{
-			Type: graphql.Int,
+		"day": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
 		},
 		"workouts": &graphql.Field{
-			Type: graphql.NewList(workoutType),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(workoutType))),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ids :=  p.Source.(days.Day).Workouts
 				ws, err := resolvableWorkouts.GetByIds(p.Context, ids)
@@ -36,7 +36,7 @@ func dayFields(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvab
 			},
 		},
 		"distance": &graphql.Field{
-			Type: graphql.Int,
+			Type: graphql.NewNonNull(graphql.Int),
 		},
 	}
 }
@@ -52,7 +52,7 @@ func dayType(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvable
 
 func daysField(resolvableDay plans.Resolvable, dayType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type:    graphql.NewList(dayType),
+		Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(dayType))),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return resolvableDay.GetAll(p.Context)
 		},

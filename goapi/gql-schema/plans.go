@@ -10,16 +10,16 @@ import (
 func planFields(weekType *graphql.Object, resolvableWeeks weeks.Resolvable) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.NewNonNull(graphql.String),
 		},
 		"name": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.NewNonNull(graphql.String),
 		},
 		"description": &graphql.Field{
 			Type: graphql.String,
 		},
 		"weeks": &graphql.Field{
-			Type: graphql.NewList(weekType),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(weekType))),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return resolvableWeeks.GetByParentId(p.Context, p.Source.(plans.Plan).Id)
 			},
@@ -38,7 +38,7 @@ func planType(weekType *graphql.Object, resolvableWeeks weeks.Resolvable) *graph
 
 func plansField(resolvablePlan plans.Resolvable, planType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
-		Type:    graphql.NewList(planType),
+		Type:   graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(planType))),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return resolvablePlan.GetAll(p.Context)
 		},

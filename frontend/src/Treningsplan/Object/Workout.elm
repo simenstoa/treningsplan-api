@@ -26,21 +26,21 @@ description =
 
 
 {-| -}
-distance : SelectionSet (Maybe Int) Treningsplan.Object.Workout
+distance : SelectionSet Int Treningsplan.Object.Workout
 distance =
-    Object.selectionForField "(Maybe Int)" "distance" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "distance" [] Decode.int
 
 
 {-| -}
-id : SelectionSet (Maybe String) Treningsplan.Object.Workout
+id : SelectionSet String Treningsplan.Object.Workout
 id =
-    Object.selectionForField "(Maybe String)" "id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-name : SelectionSet (Maybe String) Treningsplan.Object.Workout
+name : SelectionSet String Treningsplan.Object.Workout
 name =
-    Object.selectionForField "(Maybe String)" "name" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "name" [] Decode.string
 
 
 {-| -}

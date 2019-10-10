@@ -26,18 +26,18 @@ description =
 
 
 {-| -}
-id : SelectionSet (Maybe String) Treningsplan.Object.IntensityZone
+id : SelectionSet String Treningsplan.Object.IntensityZone
 id =
-    Object.selectionForField "(Maybe String)" "id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-intensityType : SelectionSet (Maybe String) Treningsplan.Object.IntensityZone
+intensityType : SelectionSet String Treningsplan.Object.IntensityZone
 intensityType =
-    Object.selectionForField "(Maybe String)" "intensityType" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "intensityType" [] Decode.string
 
 
 {-| -}
-name : SelectionSet (Maybe String) Treningsplan.Object.IntensityZone
+name : SelectionSet String Treningsplan.Object.IntensityZone
 name =
-    Object.selectionForField "(Maybe String)" "name" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "name" [] Decode.string

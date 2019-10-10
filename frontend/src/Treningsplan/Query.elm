@@ -20,15 +20,15 @@ import Treningsplan.Union
 
 
 {-| -}
-intensityZones : SelectionSet decodesTo Treningsplan.Object.IntensityZone -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
+intensityZones : SelectionSet decodesTo Treningsplan.Object.IntensityZone -> SelectionSet (List decodesTo) RootQuery
 intensityZones object_ =
-    Object.selectionForCompositeField "intensityZones" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "intensityZones" [] object_ (identity >> Decode.list)
 
 
 {-| -}
-plans : SelectionSet decodesTo Treningsplan.Object.Plan -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
+plans : SelectionSet decodesTo Treningsplan.Object.Plan -> SelectionSet (List decodesTo) RootQuery
 plans object_ =
-    Object.selectionForCompositeField "plans" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "plans" [] object_ (identity >> Decode.list)
 
 
 type alias WorkoutRequiredArguments =
@@ -46,6 +46,6 @@ workout requiredArgs object_ =
 
 
 {-| -}
-workouts : SelectionSet decodesTo Treningsplan.Object.Workout -> SelectionSet (Maybe (List (Maybe decodesTo))) RootQuery
+workouts : SelectionSet decodesTo Treningsplan.Object.Workout -> SelectionSet (List decodesTo) RootQuery
 workouts object_ =
-    Object.selectionForCompositeField "workouts" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "workouts" [] object_ (identity >> Decode.list)

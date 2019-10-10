@@ -16,8 +16,8 @@ import Treningsplan.Query
 
 
 type alias Plan =
-    { id : Maybe String
-    , name : Maybe String
+    { id : String
+    , name : String
     }
 
 
@@ -28,7 +28,7 @@ type alias Model =
 
 
 type alias Response =
-    Maybe (List (Maybe Plan))
+    List Plan
 
 
 query : SelectionSet Response RootQuery
@@ -94,39 +94,29 @@ view model =
             [ width <| px 300, centerX, centerY, spacing 20 ]
         <|
             case model.result of
-                RemoteData.NotAsked ->
-                    [ text "nothing here" ]
-
                 RemoteData.Success data ->
                     treningsplanView data
 
                 RemoteData.Loading ->
-                    [ text "I don'' care" ]
+                    [ text "Loading plans..." ]
 
                 RemoteData.Failure e ->
-                    [ text "Error" ]
+                    [ text "Something went wrong :(" ]
+
+                RemoteData.NotAsked ->
+                    [ text "Should ask" ]
 
 
 treningsplanView : Response -> List (Element.Element msg)
 treningsplanView response =
-    case response of
-        Just list ->
-            List.map planView list
-
-        Nothing ->
-            [ text "Found the data, but it was an empty list" ]
+    List.map planView response
 
 
-planView : Maybe Plan -> Element.Element msg
+planView : Plan -> Element.Element msg
 planView plan =
-    case plan of
-        Just p ->
-            Element.column []
-                [ text <| Maybe.withDefault "" p.name
-                ]
-
-        Nothing ->
-            text "Empty plan"
+    Element.column []
+        [ text <| plan.name
+        ]
 
 
 

@@ -7,20 +7,20 @@ import (
 
 var intensityZoneType = graphql.NewObject(
 	graphql.ObjectConfig{
-		Name: "IntensityZone",
+		Name:   "IntensityZone",
 		Fields: intensityZoneFields,
 	},
 )
 
 var intensityZoneFields = graphql.Fields{
 	"id": &graphql.Field{
-		Type: graphql.String,
+		Type: graphql.NewNonNull(graphql.String),
 	},
 	"name": &graphql.Field{
-		Type: graphql.String,
+		Type: graphql.NewNonNull(graphql.String),
 	},
 	"intensityType": &graphql.Field{
-		Type: graphql.String,
+		Type: graphql.NewNonNull(graphql.String),
 	},
 	"description": &graphql.Field{
 		Type: graphql.String,
@@ -29,7 +29,7 @@ var intensityZoneFields = graphql.Fields{
 
 func intensityZonesField(resolvableIntensityZones intensityzones.Resolvable) *graphql.Field {
 	return &graphql.Field{
-		Type:    graphql.NewList(intensityZoneType),
+		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(intensityZoneType))),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return resolvableIntensityZones.GetAll(p.Context)
 		},
