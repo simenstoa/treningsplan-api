@@ -6,8 +6,11 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, with)
 import Html exposing (Html)
+import List.Extra
 import RemoteData exposing (RemoteData)
+import Treningsplan.Object
 import Treningsplan.Object.Plan
+import Treningsplan.Object.Week
 import Treningsplan.Query
 
 
@@ -18,6 +21,14 @@ import Treningsplan.Query
 type alias Plan =
     { id : String
     , name : String
+    , weeks : List Week
+    }
+
+
+type alias Week =
+    { id : String
+    , order : Int
+    , distance : Int
     }
 
 
@@ -36,16 +47,26 @@ query =
     Treningsplan.Query.plans planSelection
 
 
+planSelection : SelectionSet Plan Treningsplan.Object.Plan
 planSelection =
-    SelectionSet.map2 Plan
-        Treningsplan.Object.Plan.name
+    SelectionSet.map3 Plan
         Treningsplan.Object.Plan.id
+        Treningsplan.Object.Plan.name
+        (Treningsplan.Object.Plan.weeks weekSelection)
+
+
+weekSelection : SelectionSet Week Treningsplan.Object.Week
+weekSelection =
+    SelectionSet.map3 Week
+        Treningsplan.Object.Week.id
+        Treningsplan.Object.Week.order
+        Treningsplan.Object.Week.distance
 
 
 makeRequest : Cmd Msg
 makeRequest =
     query
-        |> Graphql.Http.queryRequest "https://treningsplan-api.s33.no/"
+        |> Graphql.Http.queryRequest "https://treningsplan-api.s33.no"
         |> Graphql.Http.send (RemoteData.fromResult >> PlansFetched)
 
 
@@ -115,8 +136,35 @@ treningsplanView response =
 planView : Plan -> Element.Element msg
 planView plan =
     Element.column []
-        [ text <| plan.name
+        [ text <|
+            plan.name
+                ++ " - "
+                ++ (plan.weeks |> List.length |> String.fromInt)
+                ++ " weeks"
+                ++ formatDistanceForPlan plan.weeks
         ]
+
+
+formatDistanceForPlan : List Week -> String
+formatDistanceForPlan weeks =
+    let
+        minWeek =
+            List.Extra.minimumWith (\a b -> compare a.distance b.distance) weeks
+
+        maxWeek =
+            List.Extra.maximumWith (\a b -> compare a.distance b.distance) weeks
+    in
+    Maybe.map2 formatDistance minWeek maxWeek
+        |> Maybe.withDefault ""
+
+
+formatDistance : Week -> Week -> String
+formatDistance minWeek maxWeek =
+    " ("
+        ++ (minWeek.distance |> String.fromInt)
+        ++ ", "
+        ++ (maxWeek.distance |> String.fromInt)
+        ++ ")"
 
 
 

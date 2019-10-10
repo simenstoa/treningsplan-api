@@ -3,7 +3,7 @@ runtime: go112
 instance_class: F1
 
 env_variables:
-  AIRTABLE_SECRET: $AIRTABLE_SECRET
+  AIRTABLE_SECRET: "dummy"
 
 main: ./server
 
