@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, padding, px, rgb255, row, spacing, text, width)
+import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, with)
@@ -125,7 +126,7 @@ view model =
                     [ text "Something went wrong :(" ]
 
                 RemoteData.NotAsked ->
-                    [ text "Should ask" ]
+                    [ text "Loading plans..." ]
 
 
 treningsplanView : Response -> List (Element.Element msg)
@@ -136,7 +137,8 @@ treningsplanView response =
 planView : Plan -> Element.Element msg
 planView plan =
     Element.column []
-        [ text <|
+        [ el [ heading 1 ] <| text "Plans"
+        , text <|
             plan.name
                 ++ " - "
                 ++ (plan.weeks |> List.length |> String.fromInt)
@@ -161,10 +163,15 @@ formatDistanceForPlan weeks =
 formatDistance : Week -> Week -> String
 formatDistance minWeek maxWeek =
     " ("
-        ++ (minWeek.distance |> String.fromInt)
-        ++ ", "
-        ++ (maxWeek.distance |> String.fromInt)
-        ++ ")"
+        ++ formatKm minWeek.distance
+        ++ "-"
+        ++ formatKm maxWeek.distance
+        ++ " km)"
+
+
+formatKm : Int -> String
+formatKm km =
+    toFloat km / 1000 |> String.fromFloat
 
 
 
