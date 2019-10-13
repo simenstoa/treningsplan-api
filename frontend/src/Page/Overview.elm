@@ -101,7 +101,7 @@ view model =
 planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
     Element.column []
-        [ el [ heading 1 ] <| text "Plan"
+        [ el [ heading 1 ] <| text "Plans"
         , Element.link []
             { url = "/plans/" ++ plan.id
             , label =

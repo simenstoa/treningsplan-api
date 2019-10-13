@@ -1,15 +1,17 @@
 module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element exposing (centerX, centerY, column, el, px, spacing, text, width)
+import Element exposing (centerX, centerY, column, el, padding, px, rgb, rgba, spacing, text, width)
+import Element.Background exposing (color)
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import List.Extra
 import RemoteData exposing (RemoteData)
 import Treningsplan.Object
+import Treningsplan.Object.Day
 import Treningsplan.Object.Plan
 import Treningsplan.Object.Week
+import Treningsplan.Object.Workout
 import Treningsplan.Query
 
 
@@ -32,6 +34,22 @@ type alias Plan =
 type alias Week =
     { id : String
     , order : Int
+    , distance : Int
+    , days : List Day
+    }
+
+
+type alias Day =
+    { id : String
+    , day : Int
+    , distance : Int
+    , workouts : List Workout
+    }
+
+
+type alias Workout =
+    { id : String
+    , name : String
     , distance : Int
     }
 
@@ -61,10 +79,28 @@ planSelection =
 
 weekSelection : SelectionSet Week Treningsplan.Object.Week
 weekSelection =
-    SelectionSet.map3 Week
+    SelectionSet.map4 Week
         Treningsplan.Object.Week.id
         Treningsplan.Object.Week.order
         Treningsplan.Object.Week.distance
+        (Treningsplan.Object.Week.days daySelection)
+
+
+daySelection : SelectionSet Day Treningsplan.Object.Day
+daySelection =
+    SelectionSet.map4 Day
+        Treningsplan.Object.Day.id
+        Treningsplan.Object.Day.day
+        Treningsplan.Object.Day.distance
+        (Treningsplan.Object.Day.workouts workoutSelection)
+
+
+workoutSelection : SelectionSet Workout Treningsplan.Object.Workout
+workoutSelection =
+    SelectionSet.map3 Workout
+        Treningsplan.Object.Workout.id
+        Treningsplan.Object.Workout.name
+        Treningsplan.Object.Workout.distance
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,7 +133,7 @@ view model =
     , body =
         [ Element.layout [] <|
             column
-                [ width <| px 300, centerX, centerY, spacing 20 ]
+                [ centerX, centerY, spacing 20 ]
             <|
                 [ case model.plan of
                     RemoteData.Success data ->
@@ -120,38 +156,28 @@ planView : Maybe Plan -> Element.Element Msg
 planView plan =
     case plan of
         Just p ->
-            Element.column []
+            Element.column [ spacing 10 ]
                 [ el [ heading 1 ] <| text p.name
-                , text <|
-                    (p.weeks |> List.length |> String.fromInt)
-                        ++ " weeks"
-                        ++ formatDistanceForPlan p.weeks
+                , Element.wrappedRow [ spacing 10 ] <| List.map weekView p.weeks
                 ]
 
         Nothing ->
             text "Could not find the plan :("
 
 
-formatDistanceForPlan : List Week -> String
-formatDistanceForPlan weeks =
-    let
-        minWeek =
-            List.Extra.minimumWith (\a b -> compare a.distance b.distance) weeks
-
-        maxWeek =
-            List.Extra.maximumWith (\a b -> compare a.distance b.distance) weeks
-    in
-    Maybe.map2 formatDistance minWeek maxWeek
-        |> Maybe.withDefault ""
+weekView : Week -> Element.Element Msg
+weekView week =
+    Element.column [ spacing 10, padding 20, color <| rgb 0 201 0 ] <| List.map dayView week.days
 
 
-formatDistance : Week -> Week -> String
-formatDistance minWeek maxWeek =
-    " ("
-        ++ formatKm minWeek.distance
-        ++ "-"
-        ++ formatKm maxWeek.distance
-        ++ " km)"
+dayView : Day -> Element.Element Msg
+dayView day =
+    Element.column [] <| List.map workoutView day.workouts
+
+
+workoutView : Workout -> Element.Element Msg
+workoutView workout =
+    el [ padding 10, color <| rgb 155 201 0 ] <| text <| workout.name ++ " (" ++ formatKm workout.distance ++ " km) "
 
 
 formatKm : Int -> String
