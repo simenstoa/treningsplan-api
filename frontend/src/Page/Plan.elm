@@ -158,7 +158,7 @@ planView plan =
         Just p ->
             Element.column [ spacing 10 ]
                 [ el [ heading 1 ] <| text p.name
-                , Element.wrappedRow [ spacing 10 ] <| List.map weekView p.weeks
+                , Element.wrappedRow [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
                 ]
 
         Nothing ->
@@ -167,12 +167,18 @@ planView plan =
 
 weekView : Week -> Element.Element Msg
 weekView week =
-    Element.column [ spacing 10, padding 20, color <| rgb 0 201 0 ] <| List.map dayView week.days
+    Element.column
+        [ spacing 10, padding 20, color <| rgb 0 201 0 ]
+        [ text <| "Week " ++ (String.fromInt <| week.order + 1)
+        , Element.column [ spacing 10 ] <|
+            List.map dayView <|
+                List.sortBy (\w -> w.day) week.days
+        ]
 
 
 dayView : Day -> Element.Element Msg
 dayView day =
-    Element.column [] <| List.map workoutView day.workouts
+    Element.column [] <| List.map workoutView <| day.workouts
 
 
 workoutView : Workout -> Element.Element Msg
