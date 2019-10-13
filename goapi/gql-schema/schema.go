@@ -23,6 +23,7 @@ func InitSchema(resolvableIntensityZones intensityzones.Resolvable, resolvableWo
 				"workouts":       workoutsField(resolvableWorkout, workoutType),
 				"workout":        workoutField(resolvableWorkout, workoutType),
 				"plans":          plansField(resolvablePlan, planType),
+				"plan":           planField(resolvablePlan, planType),
 			},
 		})
 
