@@ -1,8 +1,10 @@
 module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element exposing (centerX, centerY, column, el, padding, px, rgb, rgba, spacing, text, width)
+import Element exposing (centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgba, spacing, text, width)
 import Element.Background exposing (color)
+import Element.Border as Border
+import Element.Font as Font
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -131,7 +133,7 @@ view model =
             RemoteData.NotAsked ->
                 "Loading plan..."
     , body =
-        [ Element.layout [] <|
+        [ Element.layout [ paddingXY 50 25, centerX ] <|
             column
                 [ centerX, centerY, spacing 20 ]
             <|
@@ -157,8 +159,8 @@ planView plan =
     case plan of
         Just p ->
             Element.column [ spacing 10 ]
-                [ el [ heading 1 ] <| text p.name
-                , Element.wrappedRow [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
+                [ el [ heading 1, Font.size 25 ] <| text p.name
+                , Element.column [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
                 ]
 
         Nothing ->
@@ -170,7 +172,7 @@ weekView week =
     Element.column
         [ spacing 10, padding 20, color <| rgb 0 201 0 ]
         [ text <| "Week " ++ (String.fromInt <| week.order + 1)
-        , Element.column [ spacing 10 ] <|
+        , Element.row [ spacing 5 ] <|
             List.map dayView <|
                 List.sortBy (\w -> w.day) week.days
         ]
@@ -178,12 +180,30 @@ weekView week =
 
 dayView : Day -> Element.Element Msg
 dayView day =
-    Element.column [] <| List.map workoutView <| day.workouts
+    Element.column [ Border.solid, Border.width 1, padding 5 ]
+        [ Element.row [ width fill, Element.alignTop ]
+            [ el [ Element.alignLeft, Font.size 12 ] <|
+                (text <| "Day " ++ (day.day + 1 |> String.fromInt))
+            , el [ Element.alignRight, Font.size 12 ] <|
+                (text <| formatKm day.distance ++ " km")
+            ]
+        , Element.column [ height fill ] <| List.map workoutView <| day.workouts
+        ]
 
 
 workoutView : Workout -> Element.Element Msg
 workoutView workout =
-    el [ padding 10, color <| rgb 155 201 0 ] <| text <| workout.name ++ " (" ++ formatKm workout.distance ++ " km) "
+    Element.column [ padding 5, color <| rgb 155 201 0, width <| px 150 ]
+        [ el
+            [ padding 5, Font.size 14 ]
+          <|
+            paragraph [] <|
+                [ text
+                    workout.name
+                ]
+        , el [ Element.alignBottom, Element.alignRight, Font.size 12 ] <|
+            (text <| formatKm workout.distance ++ " km")
+        ]
 
 
 formatKm : Int -> String
