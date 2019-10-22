@@ -1,7 +1,7 @@
 module Page.Overview exposing (Model, Msg(..), Plan, Result, Week, fetchPlans, formatDistance, formatDistanceForPlan, formatKm, init, planLinkView, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element exposing (centerX, centerY, column, el, px, spacing, text, width)
+import Element exposing (Length, alignLeft, centerX, centerY, column, el, fill, fillPortion, padding, px, row, spaceEvenly, spacing, text, width)
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -80,11 +80,11 @@ view model =
     , body =
         [ Element.layout [] <|
             column
-                [ width <| px 300, centerX, centerY, spacing 20 ]
+                [ width <| px 1000, centerX, centerY ]
             <|
                 case model.plans of
-                    RemoteData.Success data ->
-                        List.map planLinkView data
+                    RemoteData.Success plans ->
+                        List.map planLinkView plans
 
                     RemoteData.Loading ->
                         [ text "Loading plans..." ]
@@ -100,17 +100,21 @@ view model =
 
 planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
-    Element.column []
+    Element.column [ width fill ]
         [ el [ heading 1 ] <| text "Plans"
-        , Element.link []
+        , row [ width fill, alignLeft ]
+            [ el [ width <| fillPortion 4 ] <| text "Plan"
+            , el [ width <| fillPortion 1 ] <| text "Duration"
+            , el [ width <| fillPortion 1 ] <| text "Distance"
+            ]
+        , Element.link [ width fill ]
             { url = "/plans/" ++ plan.id
             , label =
-                text <|
-                    plan.name
-                        ++ " - "
-                        ++ (plan.weeks |> List.length |> String.fromInt)
-                        ++ " weeks"
-                        ++ formatDistanceForPlan plan.weeks
+                row [ width fill, spaceEvenly, alignLeft, padding 10 ]
+                    [ el [ width <| fillPortion 4, alignLeft ] <| text plan.name
+                    , el [ width <| fillPortion 1, alignLeft ] <| text (plan.weeks |> List.length |> String.fromInt)
+                    , el [ width <| fillPortion 1, alignLeft ] <| text (formatDistanceForPlan plan.weeks)
+                    ]
             }
         ]
 
@@ -130,11 +134,10 @@ formatDistanceForPlan weeks =
 
 formatDistance : Week -> Week -> String
 formatDistance minWeek maxWeek =
-    " ("
-        ++ formatKm minWeek.distance
+    formatKm minWeek.distance
         ++ "-"
         ++ formatKm maxWeek.distance
-        ++ " km)"
+        ++ " km"
 
 
 formatKm : Int -> String

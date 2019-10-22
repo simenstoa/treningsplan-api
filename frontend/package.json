@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "start": "elm-app start",
+    "start": "ELM_DEBUGGER=false elm-app start",
     "build": "elm-app build",
     "api": "elm-graphql https://treningsplan-api.s33.no --base Treningsplan",
     "test": "echo \"Error: no test specified\" && exit 1"
