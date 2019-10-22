@@ -200,7 +200,7 @@ weekView week =
             [ text <| "Week " ++ (String.fromInt <| week.order + 1)
             , el [ Element.alignRight ] <| text <| formatKm week.distance ++ "km"
             ]
-        , Element.row [ spacing 5 ] <|
+        , Element.wrappedRow [ spacing 5 ] <|
             List.map dayView <|
                 List.sortBy (\w -> w.day) week.days
         ]
