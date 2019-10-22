@@ -1,7 +1,31 @@
 module Page.Overview exposing (Model, Msg(..), Plan, Result, Week, fetchPlans, formatDistance, formatDistanceForPlan, formatKm, init, planLinkView, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element exposing (Length, alignLeft, centerX, centerY, column, el, fill, fillPortion, padding, px, row, spaceEvenly, spacing, text, width)
+import Element
+    exposing
+        ( Length
+        , alignLeft
+        , centerX
+        , centerY
+        , column
+        , el
+        , fill
+        , fillPortion
+        , focusStyle
+        , forceHover
+        , padding
+        , pointer
+        , px
+        , rgb255
+        , row
+        , spaceEvenly
+        , spacing
+        , text
+        , width
+        , wrappedRow
+        )
+import Element.Background as Background
+import Element.Font as Font
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -79,8 +103,8 @@ view model =
     { title = "S33 Treningsplan"
     , body =
         [ Element.layout [] <|
-            column
-                [ width <| px 1000, centerX, centerY ]
+            wrappedRow
+                [ centerX, centerY ]
             <|
                 case model.plans of
                     RemoteData.Success plans ->
@@ -100,20 +124,33 @@ view model =
 
 planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
-    Element.column [ width fill ]
-        [ el [ heading 1 ] <| text "Plans"
-        , row [ width fill, alignLeft ]
-            [ el [ width <| fillPortion 4 ] <| text "Plan"
-            , el [ width <| fillPortion 1 ] <| text "Duration"
-            , el [ width <| fillPortion 1 ] <| text "Distance"
+    Element.wrappedRow
+        [ width fill
+        , spacing 60
+        , Font.family
+            [ Font.typeface "Helvetica"
+            , Font.sansSerif
             ]
-        , Element.link [ width fill ]
+        , Font.light
+        ]
+        [ el
+            [ heading 1
+            , Font.size 64
+            , Font.extraLight
+            ]
+          <|
+            text "Plans"
+        , Element.link
+            [ width fill
+            , Background.color <| rgb255 47 172 255
+            , pointer
+            ]
             { url = "/plans/" ++ plan.id
             , label =
-                row [ width fill, spaceEvenly, alignLeft, padding 10 ]
-                    [ el [ width <| fillPortion 4, alignLeft ] <| text plan.name
-                    , el [ width <| fillPortion 1, alignLeft ] <| text (plan.weeks |> List.length |> String.fromInt)
-                    , el [ width <| fillPortion 1, alignLeft ] <| text (formatDistanceForPlan plan.weeks)
+                column [ width fill, spaceEvenly, alignLeft, padding 30, spacing 10 ]
+                    [ el [ heading 2, Font.size 24 ] <| text <| plan.name
+                    , text <| "Duration: " ++ (plan.weeks |> List.length |> String.fromInt) ++ " weeks"
+                    , text <| "Distance: " ++ formatDistanceForPlan plan.weeks
                     ]
             }
         ]
