@@ -3,8 +3,7 @@ module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, plan
 import Browser exposing (Document)
 import Element
     exposing
-        ( alpha
-        , centerX
+        ( centerX
         , centerY
         , column
         , el
@@ -14,9 +13,7 @@ import Element
         , paddingXY
         , paragraph
         , px
-        , rgb
         , rgb255
-        , rgba
         , rgba255
         , spacing
         , text
@@ -28,7 +25,28 @@ import Element.Font as Font
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import LineChart
+import LineChart.Area as Area
+import LineChart.Axis as Axis exposing (Config)
+import LineChart.Axis.Intersection as Intersection
+import LineChart.Axis.Line as AxisLine
+import LineChart.Axis.Range as Range
+import LineChart.Axis.Tick as Tick
+import LineChart.Axis.Ticks as Ticks
+import LineChart.Axis.Title as Title
+import LineChart.Axis.Values as Values
+import LineChart.Colors as Colors
+import LineChart.Container as Container
+import LineChart.Coordinate as Coordinate
+import LineChart.Dots as Dots
+import LineChart.Events as Events
+import LineChart.Grid as Grid
+import LineChart.Interpolation as Interpolation
+import LineChart.Junk as Junk
+import LineChart.Legends as Legends
+import LineChart.Line as Line
 import RemoteData exposing (RemoteData)
+import Svg exposing (Svg)
 import Treningsplan.Object
 import Treningsplan.Object.Day
 import Treningsplan.Object.Plan
@@ -180,11 +198,39 @@ planView plan =
         Just p ->
             Element.column [ spacing 10 ]
                 [ el [ heading 1, Font.size 25 ] <| text p.name
+                , Element.html <| distanceGraph p.weeks
                 , Element.column [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
                 ]
 
         Nothing ->
             text "Could not find the plan :("
+
+
+chart weeks =
+    LineChart.viewCustom
+        { y = Axis.picky 300 "Km" .distance [ 10, 20, 30, 40, 50, 60 ]
+        , x = Axis.picky 1000 "Weeks" .week [ 1, 2, 3, 4 ]
+        , container = Container.styled "line-chart-1" [ ( "font-family", "monospace" ) ]
+        , interpolation = Interpolation.monotone
+        , intersection = Intersection.at 1 0
+        , legends = Legends.none
+        , events = Events.default
+        , junk = Junk.default
+        , grid = Grid.default
+        , area = Area.normal 0.5
+        , line = Line.default
+        , dots = Dots.default
+        }
+        [ LineChart.line Colors.pink Dots.none "" weeks
+        ]
+
+
+distanceGraph : List Week -> Svg Msg
+distanceGraph weeks =
+    weeks
+        |> List.sortBy (\w -> w.order)
+        |> List.map (\week -> { week = toFloat (week.order + 1), distance = toFloat week.distance / 1000.0 })
+        |> chart
 
 
 weekView : Week -> Element.Element Msg
