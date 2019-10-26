@@ -106,24 +106,25 @@ view model =
             wrappedRow
                 [ centerX, centerY ]
             <|
-                case model.plans of
+                [ case model.plans of
                     RemoteData.Success plans ->
-                        List.map planLinkView plans
+                        plansView plans
 
                     RemoteData.Loading ->
-                        [ text "Loading plans..." ]
+                        text "Loading plans..."
 
                     RemoteData.Failure e ->
-                        [ text "Something went wrong :(" ]
+                        text "Something went wrong :("
 
                     RemoteData.NotAsked ->
-                        [ text "Loading plans..." ]
+                        text "Loading plans..."
+                ]
         ]
     }
 
 
-planLinkView : Plan -> Element.Element Msg
-planLinkView plan =
+plansView : List Plan -> Element.Element Msg
+plansView plans =
     Element.wrappedRow
         [ width fill
         , spacing 60
@@ -132,28 +133,37 @@ planLinkView plan =
             , Font.sansSerif
             ]
         , Font.light
+        , padding 20
         ]
-        [ el
-            [ heading 1
-            , Font.size 64
-            , Font.extraLight
-            ]
-          <|
-            text "Plans"
-        , Element.link
-            [ width fill
-            , Background.color <| rgb255 47 172 255
-            , pointer
-            ]
-            { url = "/plans/" ++ plan.id
-            , label =
-                column [ width fill, spaceEvenly, alignLeft, padding 30, spacing 10 ]
-                    [ el [ heading 2, Font.size 24 ] <| text <| plan.name
-                    , text <| "Duration: " ++ (plan.weeks |> List.length |> String.fromInt) ++ " weeks"
-                    , text <| "Distance: " ++ formatDistanceForPlan plan.weeks
+    <|
+        List.concat
+            [ [ el
+                    [ heading 1
+                    , Font.size 64
+                    , Font.extraLight
                     ]
-            }
+                <|
+                    text "Plans"
+              ]
+            , List.map planLinkView plans
+            ]
+
+
+planLinkView : Plan -> Element.Element Msg
+planLinkView plan =
+    Element.link
+        [ width fill
+        , Background.color <| rgb255 47 172 255
+        , pointer
         ]
+        { url = "/plans/" ++ plan.id
+        , label =
+            column [ width fill, spaceEvenly, alignLeft, padding 30, spacing 10 ]
+                [ el [ heading 2, Font.size 24 ] <| text <| plan.name
+                , text <| "Duration: " ++ (plan.weeks |> List.length |> String.fromInt) ++ " weeks"
+                , text <| "Distance: " ++ formatDistanceForPlan plan.weeks
+                ]
+        }
 
 
 formatDistanceForPlan : List Week -> String
