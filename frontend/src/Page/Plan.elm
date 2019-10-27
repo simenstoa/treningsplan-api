@@ -198,7 +198,7 @@ planView plan =
         Just p ->
             Element.column [ spacing 10 ]
                 [ el [ heading 1, Font.size 25 ] <| text p.name
-                , Element.html <| distanceGraph p.weeks
+                , el [ width fill ] <| Element.html <| distanceGraph p.weeks
                 , Element.column [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
                 ]
 
@@ -206,11 +206,39 @@ planView plan =
             text "Could not find the plan :("
 
 
+containerConfig : Container.Config Msg
+containerConfig =
+    Container.custom
+        { attributesHtml = []
+        , attributesSvg = []
+        , size = Container.relative
+        , margin = Container.Margin 30 100 30 70
+        , id = "line-chart-1"
+        }
+
+
+chart : List { week : Float, distance : Float } -> Svg.Svg Msg
 chart weeks =
     LineChart.viewCustom
-        { y = Axis.picky 300 "Km" .distance [ 10, 20, 30, 40, 50, 60 ]
-        , x = Axis.picky 1000 "Weeks" .week [ 1, 2, 3, 4 ]
-        , container = Container.styled "line-chart-1" [ ( "font-family", "monospace" ) ]
+        { y =
+            Axis.custom
+                { title = Title.default "Km"
+                , variable = Just << .distance
+                , pixels = 300
+                , range = Range.window 0 <| (Maybe.withDefault 100 <| List.maximum <| List.map .distance weeks) + 10
+                , axisLine = AxisLine.full Colors.black
+                , ticks = Ticks.default
+                }
+        , x =
+            Axis.custom
+                { title = Title.default "Weeks"
+                , variable = Just << .week
+                , pixels = 1000
+                , range = Range.padded 20 20
+                , axisLine = AxisLine.full Colors.black
+                , ticks = Ticks.int <| List.length weeks
+                }
+        , container = containerConfig
         , interpolation = Interpolation.monotone
         , intersection = Intersection.at 1 0
         , legends = Legends.none
@@ -221,7 +249,7 @@ chart weeks =
         , line = Line.default
         , dots = Dots.default
         }
-        [ LineChart.line Colors.pink Dots.none "" weeks
+        [ LineChart.line Colors.pink Dots.circle "" weeks
         ]
 
 
