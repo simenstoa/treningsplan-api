@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html exposing (Html)
 import Page.Overview as Overview
 import Page.Plan as PlanPage
+import Page.Workout as WorkoutPage
 import Url exposing (Url)
 import Url.Parser as Url exposing ((</>), Parser)
 
@@ -16,6 +17,7 @@ import Url.Parser as Url exposing ((</>), Parser)
 type Page
     = Index
     | PlanPage String
+    | WorkoutPage String
 
 
 type alias Router =
@@ -27,6 +29,7 @@ type alias Router =
 type alias Model =
     { overview : Overview.Model
     , plan : PlanPage.Model
+    , workout : WorkoutPage.Model
     , router : Router
     }
 
@@ -40,6 +43,9 @@ fetchDataForPage page =
         PlanPage id ->
             Cmd.map PlanMsg <| PlanPage.fetch id
 
+        WorkoutPage id ->
+            Cmd.map WorkoutMsg <| WorkoutPage.fetch id
+
 
 init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
@@ -49,6 +55,7 @@ init _ url key =
     in
     ( { overview = Overview.init
       , plan = PlanPage.init
+      , workout = WorkoutPage.init
       , router = { key = key, page = page }
       }
     , fetchDataForPage page
@@ -67,6 +74,7 @@ urlParser =
     Url.oneOf
         [ Url.map Index Url.top
         , Url.map PlanPage (Url.s "plans" </> Url.string)
+        , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
         ]
 
 
@@ -77,6 +85,7 @@ urlParser =
 type Msg
     = OverviewMsg Overview.Msg
     | PlanMsg PlanPage.Msg
+    | WorkoutMsg WorkoutPage.Msg
     | UrlChanged Page
     | LinkClicked Browser.UrlRequest
 
@@ -97,6 +106,13 @@ update msg model =
                     PlanPage.update planMsg model.plan
             in
             ( { model | plan = planModel }, Cmd.map PlanMsg planCmd )
+
+        WorkoutMsg workoutMsg ->
+            let
+                ( workoutModel, workoutCmd ) =
+                    WorkoutPage.update workoutMsg model.workout
+            in
+            ( { model | workout = workoutModel }, Cmd.map WorkoutMsg workoutCmd )
 
         UrlChanged page ->
             ( { model | router = { page = page, key = model.router.key } }, fetchDataForPage page )
@@ -137,6 +153,15 @@ view model =
             in
             { title = title
             , body = List.map (Html.map PlanMsg) body
+            }
+
+        WorkoutPage _ ->
+            let
+                { title, body } =
+                    WorkoutPage.view model.workout
+            in
+            { title = title
+            , body = List.map (Html.map WorkoutMsg) body
             }
 
 

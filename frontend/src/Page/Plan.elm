@@ -1,24 +1,7 @@
 module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element
-    exposing
-        ( centerX
-        , centerY
-        , column
-        , el
-        , fill
-        , height
-        , padding
-        , paddingXY
-        , paragraph
-        , px
-        , rgb255
-        , rgba255
-        , spacing
-        , text
-        , width
-        )
+import Element exposing (centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, rgba255, spaceEvenly, spacing, text, width)
 import Element.Background exposing (color)
 import Element.Border as Border
 import Element.Font as Font
@@ -318,23 +301,28 @@ dayView day =
             , el [ Element.alignRight, Font.size 12 ] <|
                 (text <| formatKm day.distance ++ " km")
             ]
-        , Element.column [ height fill ] <| List.map workoutView <| day.workouts
+        , Element.column [ height fill ] <| List.map workoutLinkView <| day.workouts
         ]
 
 
-workoutView : Workout -> Element.Element Msg
-workoutView workout =
-    Element.column [ padding 5, color <| rgba255 47 172 255 0.5, width <| px 150, Element.height fill ]
-        [ el
-            [ padding 5, Font.size 14 ]
-          <|
-            paragraph [] <|
-                [ text
-                    workout.name
+workoutLinkView : Workout -> Element.Element Msg
+workoutLinkView workout =
+    Element.link
+        [ padding 5, color <| rgba255 47 172 255 0.5, width <| px 150, Element.height fill ]
+        { url = "/workouts/" ++ workout.id
+        , label =
+            Element.column []
+                [ el
+                    [ padding 5, Font.size 14 ]
+                  <|
+                    paragraph [] <|
+                        [ text
+                            workout.name
+                        ]
+                , el [ Element.alignBottom, Element.alignRight, Font.size 12 ] <|
+                    (text <| formatKm workout.distance ++ " km")
                 ]
-        , el [ Element.alignBottom, Element.alignRight, Font.size 12 ] <|
-            (text <| formatKm workout.distance ++ " km")
-        ]
+        }
 
 
 formatKm : Int -> String
