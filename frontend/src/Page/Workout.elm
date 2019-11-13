@@ -36,6 +36,7 @@ type alias Workout =
     , description : Maybe String
     , purpose : Maybe String
     , distance : Int
+    , recipe : Maybe String
     }
 
 
@@ -49,12 +50,14 @@ init =
 
 workoutSelection : SelectionSet Workout Treningsplan.Object.Workout
 workoutSelection =
-    SelectionSet.map5 Workout
+    SelectionSet.map6 Workout
         Treningsplan.Object.Workout.id
         Treningsplan.Object.Workout.name
         Treningsplan.Object.Workout.description
         Treningsplan.Object.Workout.purpose
         Treningsplan.Object.Workout.distance
+        Treningsplan.Object.Workout.recipe
+
 
 
 fetch : String -> Cmd Msg

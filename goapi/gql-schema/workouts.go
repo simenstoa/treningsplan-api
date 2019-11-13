@@ -23,6 +23,9 @@ func workoutFields() graphql.Fields {
 		"distance": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 		},
+		"recipe": &graphql.Field{
+			Type: graphql.String,
+		},
 	}
 }
 

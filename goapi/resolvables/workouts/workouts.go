@@ -13,6 +13,7 @@ type Workout struct {
 	Purpose      string   `json:"purpose,omitempty"`
 	Description  string   `json:"description,omitempty"`
 	Distance     int      `json:"distance,omitempty"`
+	Recipe       string   `json:"recipe,omitempty"`
 }
 
 type Workouts []Workout

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.Workout exposing (description, distance, id, name, purpose)
+module Treningsplan.Object.Workout exposing (description, distance, id, name, purpose, recipe)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -47,3 +47,9 @@ name =
 purpose : SelectionSet (Maybe String) Treningsplan.Object.Workout
 purpose =
     Object.selectionForField "(Maybe String)" "purpose" [] (Decode.string |> Decode.nullable)
+
+
+{-| -}
+recipe : SelectionSet (Maybe String) Treningsplan.Object.Workout
+recipe =
+    Object.selectionForField "(Maybe String)" "recipe" [] (Decode.string |> Decode.nullable)
