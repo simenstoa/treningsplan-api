@@ -19,6 +19,7 @@ import RemoteData exposing (RemoteData)
 import Treningsplan.Object
 import Treningsplan.Object.Workout
 import Treningsplan.Query
+import Workout.Parser
 
 
 type Msg
@@ -57,7 +58,6 @@ workoutSelection =
         Treningsplan.Object.Workout.purpose
         Treningsplan.Object.Workout.distance
         Treningsplan.Object.Workout.recipe
-
 
 
 fetch : String -> Cmd Msg
@@ -128,6 +128,8 @@ workoutView workout =
         [ Element.el [ Element.heading 1, Element.Font.extraBold ] <| text <| workout.name ++ " (" ++ formatKm workout.distance ++ "km)"
         , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.description) ]
         , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.purpose) ]
+        , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.recipe) ]
+        , Element.paragraph [ Element.Font.alignLeft ] [ text (Workout.Parser.parseResultToString <| Workout.Parser.parse (Maybe.withDefault "" workout.recipe)) ]
         ]
 
 

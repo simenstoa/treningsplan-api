@@ -1,14 +1,13 @@
 module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
-import Element exposing (centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, rgba255, spaceEvenly, spacing, text, width)
+import Element exposing (centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, rgba255, spacing, text, width)
 import Element.Background exposing (color)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Html exposing (Html)
 import LineChart
 import LineChart.Area as Area
 import LineChart.Axis as Axis exposing (Config)
