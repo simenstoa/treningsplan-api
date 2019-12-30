@@ -13,6 +13,7 @@ import (
 	"goapi/resolvables/intensity-zones"
 	"goapi/resolvables/plans"
 	"goapi/resolvables/weeks"
+	workout_intensities "goapi/resolvables/workout-intensities"
 	"goapi/resolvables/workouts"
 	"goapi/server/mw"
 	"net/http"
@@ -53,9 +54,10 @@ func main() {
 	resolvableDay := days.NewResolvable(airtableClient)
 	resolvableWeek := weeks.NewResolvable(airtableClient)
 	resolvablePlan := plans.NewResolvable(airtableClient)
+	resolvableWorkoutIntensities := workout_intensities.NewResolvable(airtableClient)
 
 	log.Info("setting up graphql schema")
-	schema, err := gqlschema.InitSchema(resolvableIntensity, resolvableWorkout, resolvableDay, resolvableWeek, resolvablePlan)
+	schema, err := gqlschema.InitSchema(resolvableIntensity, resolvableWorkout, resolvableDay, resolvableWeek, resolvablePlan, resolvableWorkoutIntensities)
 	if err != nil {
 		log.WithError(err).Panic("failed to create new schema")
 	}

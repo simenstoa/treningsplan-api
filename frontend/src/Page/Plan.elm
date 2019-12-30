@@ -1,6 +1,7 @@
 module Page.Plan exposing (Model, Msg(..), Plan, Result, Week, fetch, init, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
+import Config exposing (globalConfig)
 import Element exposing (centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, rgba255, spacing, text, width)
 import Element.Background exposing (color)
 import Element.Border as Border
@@ -94,7 +95,7 @@ init =
 fetch : String -> Cmd Msg
 fetch id =
     Treningsplan.Query.plan (Treningsplan.Query.PlanRequiredArguments id) planSelection
-        |> Graphql.Http.queryRequest "https://treningsplan-api.s33.no"
+        |> Graphql.Http.queryRequest globalConfig.graphQLUrl
         |> Graphql.Http.send (RemoteData.fromResult >> Fetched)
 
 

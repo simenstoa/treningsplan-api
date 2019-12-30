@@ -10,16 +10,18 @@ module Page.Workout exposing
     )
 
 import Browser exposing (Document)
+import Config exposing (globalConfig)
 import Element exposing (Length, alignLeft, centerX, centerY, fill, spacing, text, width, wrappedRow)
 import Element.Font
 import Element.Region as Element
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import RemoteData exposing (RemoteData)
+import Treningsplan.Enum.Metric exposing (Metric)
 import Treningsplan.Object
 import Treningsplan.Object.Workout
+import Treningsplan.Object.WorkoutIntensity
 import Treningsplan.Query
-import Workout.Parser
 
 
 type Msg
@@ -31,13 +33,29 @@ type alias Model =
     }
 
 
+type Metric
+    = Meter
+    | Minute
+
+
+type alias WorkoutIntensity =
+    { id : String
+    , name : String
+    , description : String
+    , coefficient : Float
+    , intensity : String
+    , metric : Metric
+    , distance : Int
+    }
+
+
 type alias Workout =
     { id : String
     , name : String
     , description : Maybe String
     , purpose : Maybe String
     , distance : Int
-    , recipe : Maybe String
+    , intensity : List WorkoutIntensity
     }
 
 
@@ -57,13 +75,29 @@ workoutSelection =
         Treningsplan.Object.Workout.description
         Treningsplan.Object.Workout.purpose
         Treningsplan.Object.Workout.distance
-        Treningsplan.Object.Workout.recipe
+        (Treningsplan.Object.Workout.intensity intensitySelection)
+
+
+intensitySelection : SelectionSet WorkoutIntensity Treningsplan.Object.WorkoutIntensity
+intensitySelection =
+    SelectionSet.map7 WorkoutIntensity
+        Treningsplan.Object.WorkoutIntensity.id
+        Treningsplan.Object.WorkoutIntensity.name
+        Treningsplan.Object.WorkoutIntensity.description
+        Treningsplan.Object.WorkoutIntensity.coefficient
+        Treningsplan.Object.WorkoutIntensity.intensity
+        metricSelection
+        Treningsplan.Object.WorkoutIntensity.distance
+
+
+metricSelection =
+    SelectionSet.succeed Meter
 
 
 fetch : String -> Cmd Msg
 fetch id =
     Treningsplan.Query.workout (Treningsplan.Query.WorkoutRequiredArguments id) workoutSelection
-        |> Graphql.Http.queryRequest "https://treningsplan-api.s33.no"
+        |> Graphql.Http.queryRequest globalConfig.graphQLUrl
         |> Graphql.Http.send (RemoteData.fromResult >> Fetched)
 
 
@@ -127,9 +161,6 @@ workoutView workout =
         [ spacing 20, width fill ]
         [ Element.el [ Element.heading 1, Element.Font.extraBold ] <| text <| workout.name ++ " (" ++ formatKm workout.distance ++ "km)"
         , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.description) ]
-        , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.purpose) ]
-        , Element.paragraph [ Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.recipe) ]
-        , Element.paragraph [ Element.Font.alignLeft ] [ text (Workout.Parser.parseResultToString <| Workout.Parser.parse (Maybe.withDefault "" workout.recipe)) ]
         ]
 
 

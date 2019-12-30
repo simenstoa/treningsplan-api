@@ -18,11 +18,12 @@ const (
 type Table string
 
 const (
-	Intensity    Table = "Intensity"
-	Workout      Table = "Workout"
-	Week         Table = "Week"
-	Day          Table = "Day"
-	Plan         Table = "Plan"
+	Intensity        Table = "Intensity"
+	Workout          Table = "Workout"
+	WorkoutIntensity Table = "WorkoutIntensity"
+	Week             Table = "Week"
+	Day              Table = "Day"
+	Plan             Table = "Plan"
 )
 
 type AirtableResult struct {

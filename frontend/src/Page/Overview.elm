@@ -1,6 +1,7 @@
 module Page.Overview exposing (Model, Msg(..), Plan, Result, Week, fetchPlans, formatDistance, formatDistanceForPlan, formatKm, init, planLinkView, planSelection, update, view, weekSelection)
 
 import Browser exposing (Document)
+import Config exposing (globalConfig)
 import Element
     exposing
         ( Length
@@ -87,7 +88,7 @@ weekSelection =
 fetchPlans : Cmd Msg
 fetchPlans =
     Treningsplan.Query.plans planSelection
-        |> Graphql.Http.queryRequest "https://treningsplan-api.s33.no"
+        |> Graphql.Http.queryRequest globalConfig.graphQLUrl
         |> Graphql.Http.send (RemoteData.fromResult >> Fetched)
 
 

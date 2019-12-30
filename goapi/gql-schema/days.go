@@ -2,9 +2,7 @@ package gqlschema
 
 import (
 	"github.com/graphql-go/graphql"
-	"goapi/gql-common"
 	"goapi/resolvables/days"
-	"goapi/resolvables/plans"
 	"goapi/resolvables/workouts"
 )
 
@@ -48,32 +46,4 @@ func dayType(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvable
 			Fields: dayFields(workoutType, resolvableWorkouts),
 		},
 	)
-}
-
-func daysField(resolvableDay plans.Resolvable, dayType *graphql.Object) *graphql.Field {
-	return &graphql.Field{
-		Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(dayType))),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return resolvableDay.GetAll(p.Context)
-		},
-	}
-}
-
-func dayField(resolvablePlan plans.Resolvable, planType *graphql.Object) *graphql.Field {
-	return &graphql.Field{
-		Type: planType,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			id, err := gqlcommon.GetId(p)
-			if err != nil {
-				return nil, err
-			}
-			return resolvablePlan.Get(p.Context, id)
-		},
-		Args: map[string]*graphql.ArgumentConfig{
-			"id": {
-				Type:         graphql.NewNonNull(graphql.String),
-				Description:  "The id of the day",
-			},
-		},
-	}
 }

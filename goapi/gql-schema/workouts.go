@@ -3,10 +3,11 @@ package gqlschema
 import (
 	"github.com/graphql-go/graphql"
 	"goapi/gql-common"
+	workout_intensities "goapi/resolvables/workout-intensities"
 	"goapi/resolvables/workouts"
 )
 
-func workoutFields() graphql.Fields {
+func workoutFields(resolvableWorkoutIntensity workout_intensities.Resolvable) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -23,17 +24,20 @@ func workoutFields() graphql.Fields {
 		"distance": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 		},
-		"recipe": &graphql.Field{
-			Type: graphql.String,
+		"intensity": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(workoutIntensityType()))),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return resolvableWorkoutIntensity.GetByParentId(p.Context, p.Source.(workouts.Workout).Id)
+			},
 		},
 	}
 }
 
-func workoutType() *graphql.Object {
+func workoutType(resolvableWorkoutIntensity workout_intensities.Resolvable) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Workout",
-			Fields: workoutFields(),
+			Fields: workoutFields(resolvableWorkoutIntensity),
 		},
 	)
 }

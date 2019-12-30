@@ -6,11 +6,12 @@ import (
 	"goapi/resolvables/intensity-zones"
 	"goapi/resolvables/plans"
 	"goapi/resolvables/weeks"
+	workout_intensities "goapi/resolvables/workout-intensities"
 	"goapi/resolvables/workouts"
 )
 
-func InitSchema(resolvableIntensityZones intensityzones.Resolvable, resolvableWorkout workouts.Resolvable, resolvableDay days.Resolvable, resolvableWeek weeks.Resolvable, resolvablePlan plans.Resolvable) (graphql.Schema, error) {
-	workoutType := workoutType()
+func InitSchema(resolvableIntensityZones intensityzones.Resolvable, resolvableWorkout workouts.Resolvable, resolvableDay days.Resolvable, resolvableWeek weeks.Resolvable, resolvablePlan plans.Resolvable, resolvableWorkoutIntensities workout_intensities.Resolvable) (graphql.Schema, error) {
+	workoutType := workoutType(resolvableWorkoutIntensities)
 	dayType := dayType(workoutType, resolvableWorkout)
 	weekType := weekType(dayType, resolvableDay)
 	planType := planType(weekType, resolvableWeek)
