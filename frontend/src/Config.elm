@@ -6,4 +6,4 @@ type alias Config =
 
 
 globalConfig =
-    { graphQLUrl = "http://treningsplan-api.s33.no" }
+    { graphQLUrl = "https://treningsplan-api.s33.no" }
