@@ -26,6 +26,7 @@ import LineChart.Interpolation as Interpolation
 import LineChart.Junk as Junk
 import LineChart.Legends as Legends
 import LineChart.Line as Line
+import Pallette
 import RemoteData exposing (RemoteData)
 import Svg exposing (Svg)
 import Treningsplan.Object
@@ -278,7 +279,7 @@ weekView week =
     Element.column
         [ spacing 10
         , padding 20
-        , Border.color <| rgb255 47 172 255
+        , Border.color <| Pallette.blue
         , Border.solid
         , Border.width 5
         ]

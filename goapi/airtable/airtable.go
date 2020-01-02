@@ -24,6 +24,7 @@ const (
 	Week             Table = "Week"
 	Day              Table = "Day"
 	Plan             Table = "Plan"
+	Profile          Table = "Profile"
 )
 
 type AirtableResult struct {

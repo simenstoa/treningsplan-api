@@ -2,9 +2,11 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Element exposing (alignLeft, alignRight, fill, px)
 import Html exposing (Html)
 import Page.Overview as Overview
 import Page.Plan as PlanPage
+import Page.Profile as ProfilePage
 import Page.Workout as WorkoutPage
 import Url exposing (Url)
 import Url.Parser as Url exposing ((</>), Parser)
@@ -18,6 +20,7 @@ type Page
     = Index
     | PlanPage String
     | WorkoutPage String
+    | ProfilePage String
 
 
 type alias Router =
@@ -30,6 +33,7 @@ type alias Model =
     { overview : Overview.Model
     , plan : PlanPage.Model
     , workout : WorkoutPage.Model
+    , profile : ProfilePage.Model
     , router : Router
     }
 
@@ -46,6 +50,9 @@ fetchDataForPage page =
         WorkoutPage id ->
             Cmd.map WorkoutMsg <| WorkoutPage.fetch id
 
+        ProfilePage id ->
+            Cmd.map ProfileMsg <| ProfilePage.fetch id
+
 
 init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
@@ -56,6 +63,7 @@ init _ url key =
     ( { overview = Overview.init
       , plan = PlanPage.init
       , workout = WorkoutPage.init
+      , profile = ProfilePage.init
       , router = { key = key, page = page }
       }
     , fetchDataForPage page
@@ -75,6 +83,7 @@ urlParser =
         [ Url.map Index Url.top
         , Url.map PlanPage (Url.s "plans" </> Url.string)
         , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
+        , Url.map ProfilePage (Url.s "profiles" </> Url.string)
         ]
 
 
@@ -86,6 +95,7 @@ type Msg
     = OverviewMsg Overview.Msg
     | PlanMsg PlanPage.Msg
     | WorkoutMsg WorkoutPage.Msg
+    | ProfileMsg ProfilePage.Msg
     | UrlChanged Page
     | LinkClicked Browser.UrlRequest
 
@@ -114,6 +124,13 @@ update msg model =
             in
             ( { model | workout = workoutModel }, Cmd.map WorkoutMsg workoutCmd )
 
+        ProfileMsg profileMsg ->
+            let
+                ( profileModel, profileCmd ) =
+                    ProfilePage.update profileMsg model.profile
+            in
+            ( { model | profile = profileModel }, Cmd.map ProfileMsg profileCmd )
+
         UrlChanged page ->
             ( { model | router = { page = page, key = model.router.key } }, fetchDataForPage page )
 
@@ -134,6 +151,20 @@ update msg model =
 ---- VIEW ----
 
 
+createLayout : Model -> Element.Element Msg -> List (Html Msg)
+createLayout model page =
+    [ Element.layout [] <|
+        Element.column [] <|
+            [ Element.map ProfileMsg <|
+                Element.el
+                    [ alignRight ]
+                <|
+                    ProfilePage.headerView model.profile
+            , page
+            ]
+    ]
+
+
 view : Model -> Document Msg
 view model =
     case model.router.page of
@@ -143,7 +174,7 @@ view model =
                     Overview.view model.overview
             in
             { title = title
-            , body = List.map (Html.map OverviewMsg) body
+            , body = createLayout model <| Element.map OverviewMsg body
             }
 
         PlanPage _ ->
@@ -162,6 +193,15 @@ view model =
             in
             { title = title
             , body = List.map (Html.map WorkoutMsg) body
+            }
+
+        ProfilePage _ ->
+            let
+                { title, body } =
+                    ProfilePage.view model.profile
+            in
+            { title = title
+            , body = List.map (Html.map ProfileMsg) body
             }
 
 

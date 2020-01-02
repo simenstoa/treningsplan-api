@@ -2,35 +2,14 @@ module Page.Overview exposing (Model, Msg(..), Plan, Result, Week, fetchPlans, f
 
 import Browser exposing (Document)
 import Config exposing (globalConfig)
-import Element
-    exposing
-        ( Length
-        , alignLeft
-        , centerX
-        , centerY
-        , column
-        , el
-        , fill
-        , fillPortion
-        , focusStyle
-        , forceHover
-        , padding
-        , pointer
-        , px
-        , rgb255
-        , row
-        , spaceEvenly
-        , spacing
-        , text
-        , width
-        , wrappedRow
-        )
+import Element exposing (Length, alignLeft, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, spaceEvenly, spacing, text, width, wrappedRow)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
+import Pallette
 import RemoteData exposing (RemoteData)
 import Treningsplan.Object
 import Treningsplan.Object.Plan
@@ -99,28 +78,25 @@ update msg model =
             ( { model | plans = plans }, Cmd.none )
 
 
-view : Model -> Document Msg
 view model =
     { title = "S33 Treningsplan"
     , body =
-        [ Element.layout [] <|
-            wrappedRow
-                [ centerX, centerY ]
-            <|
-                [ case model.plans of
-                    RemoteData.Success plans ->
-                        plansView plans
+        wrappedRow
+            [ width fill, height fill, centerX, centerY ]
+        <|
+            [ case model.plans of
+                RemoteData.Success plans ->
+                    plansView plans
 
-                    RemoteData.Loading ->
-                        text "Loading plans..."
+                RemoteData.Loading ->
+                    text "Loading plans..."
 
-                    RemoteData.Failure e ->
-                        text "Something went wrong :("
+                RemoteData.Failure _ ->
+                    text "Something went wrong :("
 
-                    RemoteData.NotAsked ->
-                        text "Loading plans..."
-                ]
-        ]
+                RemoteData.NotAsked ->
+                    text "Loading plans..."
+            ]
     }
 
 
@@ -154,7 +130,7 @@ planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
     Element.link
         [ width fill
-        , Background.color <| rgb255 47 172 255
+        , Background.color <| Pallette.blue
         , pointer
         ]
         { url = "/plans/" ++ plan.id

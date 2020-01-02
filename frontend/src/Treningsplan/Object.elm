@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object exposing (Day(..), IntensityZone(..), Plan(..), Week(..), Workout(..), WorkoutIntensity(..))
+module Treningsplan.Object exposing (Day(..), IntensityZone(..), Plan(..), Profile(..), Week(..), Workout(..), WorkoutIntensity(..))
 
 
 type Day
@@ -15,6 +15,10 @@ type IntensityZone
 
 type Plan
     = Plan
+
+
+type Profile
+    = Profile
 
 
 type Week

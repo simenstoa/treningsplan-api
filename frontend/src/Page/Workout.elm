@@ -11,13 +11,12 @@ module Page.Workout exposing
 
 import Browser exposing (Document)
 import Config exposing (globalConfig)
-import Element exposing (Length, alignLeft, centerX, centerY, fill, spacing, text, width, wrappedRow)
+import Element exposing (Length, centerX, centerY, fill, spacing, text, width, wrappedRow)
 import Element.Font
 import Element.Region as Element
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import RemoteData exposing (RemoteData)
-import Treningsplan.Enum.Metric exposing (Metric)
 import Treningsplan.Object
 import Treningsplan.Object.Workout
 import Treningsplan.Object.WorkoutIntensity
