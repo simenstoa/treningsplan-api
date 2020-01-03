@@ -2,11 +2,12 @@ module Page.Profile exposing (Model, Msg(..), Profile, Result, fetch, headerView
 
 import Browser exposing (Document)
 import Config exposing (globalConfig)
-import Element exposing (Length, centerX, centerY, fill, spacing, text, width, wrappedRow)
+import Element exposing (Length, alignRight, centerX, centerY, fill, fillPortion, height, padding, px, spacing, text, width)
 import Element.Background
+import Element.Border
 import Element.Font
 import Element.Input
-import Element.Region as Element
+import Element.Region exposing (heading)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Pallette
@@ -90,37 +91,56 @@ view model =
                 "Loading profile..."
     , body =
         [ Element.layout [] <|
-            wrappedRow
-                [ centerX, centerY ]
-            <|
-                [ case model.profile of
-                    RemoteData.Success profile ->
-                        case profile of
-                            Just p ->
-                                profileView p
+            case model.profile of
+                RemoteData.Success profile ->
+                    case profile of
+                        Just p ->
+                            profileView p
 
-                            Nothing ->
-                                text "The profile does not exist."
+                        Nothing ->
+                            text "The profile does not exist."
 
-                    RemoteData.Loading ->
-                        text "Loading profile..."
+                RemoteData.Loading ->
+                    text "Loading profile..."
 
-                    RemoteData.Failure e ->
-                        text "Something went wrong :("
+                RemoteData.Failure e ->
+                    text "Something went wrong :("
 
-                    RemoteData.NotAsked ->
-                        text "Loading profile..."
-                ]
+                RemoteData.NotAsked ->
+                    text "Loading profile..."
         ]
     }
 
 
 profileView : Profile -> Element.Element Msg
 profileView profile =
-    Element.column
-        [ spacing 20, width fill ]
-        [ Element.el [ Element.heading 1, Element.Font.extraBold ] <| text <| profile.firstname
-        , Element.el [ Element.Font.alignLeft ] <| text <| "vdot: " ++ String.fromInt profile.vdot
+    Element.wrappedRow [ height fill, width fill, padding 40, spacing 40 ]
+        [ Element.column
+            [ width <| fillPortion 2, height fill, spacing 40 ]
+            [ Element.el [ height <| fillPortion 1, width fill, Element.Background.color <| Pallette.blue ] <|
+                Element.el [ centerY, centerX, heading 1 ] <|
+                    text <|
+                        profile.firstname
+                            ++ " "
+                            ++ profile.surname
+            , Element.el [ height <| fillPortion 19, width fill, Element.Background.color <| Pallette.blue ] <|
+                Element.el [ heading 2 ] <|
+                    text <|
+                        "Personal records"
+            ]
+        , Element.column
+            [ width <| fillPortion 3, height fill, spacing 40 ]
+            [ Element.el [ height <| fillPortion 1, width fill ] <|
+                Element.el [ height <| px 150, width <| px 150, alignRight, Element.Background.color <| Pallette.blue, Element.Border.rounded 150 ] <|
+                    Element.el [ centerX, centerY ] <|
+                        text <|
+                            "vdot: "
+                                ++ String.fromInt profile.vdot
+            , Element.el [ height <| fillPortion 19, width fill, Element.Background.color <| Pallette.blue ] <|
+                Element.el [ heading 2 ] <|
+                    text <|
+                        "Workout pace"
+            ]
         ]
 
 
