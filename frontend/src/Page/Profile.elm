@@ -2,12 +2,13 @@ module Page.Profile exposing (Model, Msg(..), Profile, Result, fetch, headerView
 
 import Browser exposing (Document)
 import Config exposing (globalConfig)
-import Element exposing (Length, alignRight, centerX, centerY, fill, fillPortion, height, padding, px, spacing, text, width)
+import Element exposing (Length, alignBottom, alignRight, centerX, centerY, fill, fillPortion, height, minimum, padding, px, spacing, text, width)
 import Element.Background
 import Element.Border
 import Element.Font
 import Element.Input
 import Element.Region exposing (heading)
+import Fonts
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Pallette
@@ -69,7 +70,6 @@ update msg model =
             ( model, fetch id )
 
 
-view : Model -> Document Msg
 view model =
     { title =
         case model.profile of
@@ -90,58 +90,84 @@ view model =
             RemoteData.NotAsked ->
                 "Loading profile..."
     , body =
-        [ Element.layout [] <|
-            case model.profile of
-                RemoteData.Success profile ->
-                    case profile of
-                        Just p ->
-                            profileView p
+        case model.profile of
+            RemoteData.Success profile ->
+                case profile of
+                    Just p ->
+                        profileView p
 
-                        Nothing ->
-                            text "The profile does not exist."
+                    Nothing ->
+                        Element.el [ centerX, centerY ] <| text "The profile does not exist."
 
-                RemoteData.Loading ->
-                    text "Loading profile..."
+            RemoteData.Loading ->
+                Element.el [ centerX, centerY ] <| text "Loading profile..."
 
-                RemoteData.Failure e ->
-                    text "Something went wrong :("
+            RemoteData.Failure e ->
+                Element.el [ centerX, centerY ] <| text "Something went wrong :("
 
-                RemoteData.NotAsked ->
-                    text "Loading profile..."
-        ]
+            RemoteData.NotAsked ->
+                Element.el [ centerX, centerY ] <| text "Loading profile..."
     }
 
 
 profileView : Profile -> Element.Element Msg
 profileView profile =
-    Element.wrappedRow [ height fill, width fill, padding 40, spacing 40 ]
-        [ Element.column
-            [ width <| fillPortion 2, height fill, spacing 40 ]
-            [ Element.el [ height <| fillPortion 1, width fill, Element.Background.color <| Pallette.blue ] <|
-                Element.el [ centerY, centerX, heading 1 ] <|
+    Element.column [ height fill, width fill, padding 40, spacing 40 ]
+        [ Element.row
+            [ width fill, height <| fillPortion 1, spacing 40 ]
+            [ Element.el [ width <| fillPortion 2, height fill, Element.Background.color <| Pallette.light_moss_green ] <|
+                Element.el [ centerY, centerX, heading 1, Fonts.heading, Element.Font.size 30, padding 20 ] <|
                     text <|
                         profile.firstname
                             ++ " "
                             ++ profile.surname
-            , Element.el [ height <| fillPortion 19, width fill, Element.Background.color <| Pallette.blue ] <|
-                Element.el [ heading 2 ] <|
-                    text <|
-                        "Personal records"
+            , Element.el [ width <| fillPortion 3 ] <|
+                Element.none
             ]
-        , Element.column
-            [ width <| fillPortion 3, height fill, spacing 40 ]
-            [ Element.el [ height <| fillPortion 1, width fill ] <|
-                Element.el [ height <| px 150, width <| px 150, alignRight, Element.Background.color <| Pallette.blue, Element.Border.rounded 150 ] <|
-                    Element.el [ centerX, centerY ] <|
-                        text <|
-                            "vdot: "
-                                ++ String.fromInt profile.vdot
-            , Element.el [ height <| fillPortion 19, width fill, Element.Background.color <| Pallette.blue ] <|
-                Element.el [ heading 2 ] <|
-                    text <|
+        , Element.wrappedRow
+            [ width fill, height <| fillPortion 19, spacing 40 ]
+            [ Element.el [ height (fill |> minimum 400), width <| (fillPortion 2 |> minimum 300), Element.Background.color <| Pallette.light_slate_grey ] <|
+                smallHeader <|
+                    "Personal records"
+            , Element.column [ height (fill |> minimum 400), width <| (fillPortion 3 |> minimum 300) ]
+                [ Element.el
+                    [ heading 2
+                    , height fill
+                    , width fill
+                    , Element.Background.color <| Pallette.light_slate_grey
+                    , Element.inFront <| vdotView profile
+                    ]
+                  <|
+                    smallHeader <|
                         "Workout pace"
+                ]
             ]
         ]
+
+
+smallHeader : String -> Element.Element Msg
+smallHeader header =
+    Element.el [ heading 2, padding 20, Element.Font.size 30, Fonts.heading ] <|
+        text <|
+            header
+
+
+vdotView : Profile -> Element.Element Msg
+vdotView profile =
+    Element.el
+        [ height <| px 100
+        , width <| px 100
+        , alignRight
+        , Element.moveUp 25
+        , Element.moveRight 25
+        , Element.Background.color <| Pallette.light_moss_green
+        , Element.Border.rounded 150
+        ]
+    <|
+        Element.el [ centerX, centerY ] <|
+            text <|
+                "vdot: "
+                    ++ String.fromInt profile.vdot
 
 
 headerView : Model -> Element.Element Msg
@@ -168,7 +194,7 @@ headerView model =
 loginButton : Element.Element Msg
 loginButton =
     Element.Input.button
-        [ Element.Background.color Pallette.blue
+        [ Element.Background.color Pallette.light_slate_grey
         , Element.padding 5
         ]
         { onPress = Just <| LogIn "recfBcTSvqs8CyrCk"
@@ -180,7 +206,7 @@ loggedInView : Profile -> Element.Element Msg
 loggedInView profile =
     Element.el
         [ Element.padding 5
-        , Element.Font.color Pallette.blue
+        , Element.Font.color Pallette.light_slate_grey
         ]
     <|
         text profile.firstname

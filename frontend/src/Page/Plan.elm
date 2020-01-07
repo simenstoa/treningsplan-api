@@ -279,7 +279,7 @@ weekView week =
     Element.column
         [ spacing 10
         , padding 20
-        , Border.color <| Pallette.blue
+        , Border.color <| Pallette.light_slate_grey
         , Border.solid
         , Border.width 5
         ]

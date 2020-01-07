@@ -1,11 +1,11 @@
 module Page.Overview exposing (Model, Msg(..), Plan, Result, Week, fetchPlans, formatDistance, formatDistanceForPlan, formatKm, init, planLinkView, planSelection, update, view, weekSelection)
 
-import Browser exposing (Document)
 import Config exposing (globalConfig)
-import Element exposing (Length, alignLeft, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, spaceEvenly, spacing, text, width, wrappedRow)
+import Element exposing (Length, alignLeft, alignTop, centerX, centerY, column, el, fill, height, maximum, minimum, padding, pointer, px, spaceEvenly, spacing, text, width, wrappedRow)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Region exposing (heading)
+import Fonts
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
@@ -89,13 +89,13 @@ view model =
                     plansView plans
 
                 RemoteData.Loading ->
-                    text "Loading plans..."
+                    Element.el [ centerX, centerY ] <| text "Loading plans..."
 
                 RemoteData.Failure _ ->
-                    text "Something went wrong :("
+                    Element.el [ centerX, centerY ] <| text "Something went wrong :("
 
                 RemoteData.NotAsked ->
-                    text "Loading plans..."
+                    Element.el [ centerX, centerY ] <| text "Loading plans..."
             ]
     }
 
@@ -104,33 +104,34 @@ plansView : List Plan -> Element.Element Msg
 plansView plans =
     Element.wrappedRow
         [ width fill
-        , spacing 60
-        , Font.family
-            [ Font.typeface "Helvetica"
-            , Font.sansSerif
-            ]
-        , Font.light
-        , padding 20
         ]
     <|
-        List.concat
-            [ [ el
-                    [ heading 1
-                    , Font.size 64
-                    , Font.extraLight
-                    ]
-                <|
-                    text "Plans"
-              ]
-            , List.map planLinkView plans
+        [ el
+            [ heading 1
+            , Fonts.heading
+            , Font.size 64
+            , alignTop
+            , padding 30
             ]
+          <|
+            text "Plans"
+        , Element.wrappedRow
+            [ width fill
+            , spacing 60
+            , padding 20
+            ]
+          <|
+            List.map
+                planLinkView
+                plans
+        ]
 
 
 planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
     Element.link
-        [ width fill
-        , Background.color <| Pallette.blue
+        [ width (fill |> maximum 400 |> minimum 300)
+        , Background.color <| Pallette.light_slate_grey
         , pointer
         ]
         { url = "/plans/" ++ plan.id

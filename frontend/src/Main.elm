@@ -2,7 +2,10 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Element exposing (alignLeft, alignRight, fill, px)
+import Element exposing (alignLeft, alignRight, fill, height, px, width)
+import Element.Background
+import Element.Region
+import Fonts
 import Html exposing (Html)
 import Page.Overview as Overview
 import Page.Plan as PlanPage
@@ -153,14 +156,15 @@ update msg model =
 
 createLayout : Model -> Element.Element Msg -> List (Html Msg)
 createLayout model page =
-    [ Element.layout [] <|
-        Element.column [] <|
+    [ Element.layout [ Fonts.body, Element.Background.image "%PUBLIC_URL%/asoggetti-GYr9A2CPMhY-unsplash.svg" ] <|
+        Element.column [ width fill, height fill ] <|
             [ Element.map ProfileMsg <|
                 Element.el
                     [ alignRight ]
                 <|
                     ProfilePage.headerView model.profile
             , page
+            , Element.el [ Element.Region.footer, height <| px 200 ] Element.none
             ]
     ]
 
@@ -201,7 +205,7 @@ view model =
                     ProfilePage.view model.profile
             in
             { title = title
-            , body = List.map (Html.map ProfileMsg) body
+            , body = createLayout model <| Element.map ProfileMsg body
             }
 
 
