@@ -49,6 +49,9 @@ init _ url key =
     let
         page =
             Navigation.urlToPage url
+
+        userId =
+            "recfBcTSvqs8CyrCk"
     in
     ( { overview = Overview.init
       , plan = PlanPage.init
@@ -56,7 +59,10 @@ init _ url key =
       , profile = ProfilePage.init
       , navigation = Navigation.init key page
       }
-    , fetchDataForPage page
+    , Cmd.batch
+        [ fetchDataForPage page
+        , Cmd.map ProfileMsg <| ProfilePage.fetch userId
+        ]
     )
 
 

@@ -69,7 +69,7 @@ profileTab model result =
 loginButton : Element.Element Profile.Msg
 loginButton =
     Element.Input.button
-        [ Element.Background.color Pallette.light_slate_grey
+        [ Element.Background.color Pallette.sunray
         , Element.padding 20
         ]
         { onPress = Just <| Profile.LogIn "recfBcTSvqs8CyrCk"
