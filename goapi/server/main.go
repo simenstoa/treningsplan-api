@@ -13,6 +13,7 @@ import (
 	"goapi/resolvables/intensity-zones"
 	"goapi/resolvables/plans"
 	"goapi/resolvables/profiles"
+	"goapi/resolvables/records"
 	"goapi/resolvables/weeks"
 	workout_intensities "goapi/resolvables/workout-intensities"
 	"goapi/resolvables/workouts"
@@ -57,24 +58,28 @@ func main() {
 	resolvablePlan := plans.NewResolvable(airtableClient)
 	resolvableWorkoutIntensities := workout_intensities.NewResolvable(airtableClient)
 	resolvableProfiles := profiles.NewResolvable(airtableClient)
+	resolvableRecords := records.NewResolvable(airtableClient)
 
 	log.Info("setting up graphql schema")
-	schema, err := gqlschema.InitSchema(resolvableIntensity, resolvableWorkout, resolvableDay, resolvableWeek, resolvablePlan, resolvableWorkoutIntensities, resolvableProfiles)
+	schema, err := gqlschema.InitSchema(
+		resolvableIntensity, resolvableWorkout, resolvableDay, resolvableWeek, resolvablePlan,
+		resolvableWorkoutIntensities, resolvableProfiles, resolvableRecords,
+	)
 	if err != nil {
 		log.WithError(err).Panic("failed to create new schema")
 	}
 
 	c := cors.New(cors.Options{
-		AllowedMethods: []string{"GET","POST", "OPTIONS"},
-		AllowedOrigins: []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		AllowedHeaders: []string{"Content-Type","Bearer","Bearer ","content-type","Origin","Accept"},
+		AllowedHeaders:   []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept"},
 	})
 
 	h := handler.New(&handler.Config{
-		Schema: &schema,
-		Pretty: true,
-		GraphiQL: false,
+		Schema:     &schema,
+		Pretty:     true,
+		GraphiQL:   false,
 		Playground: true,
 	})
 

@@ -1,21 +1,22 @@
-module Page.Profile exposing (Model, Msg(..), Profile, Result, fetch, headerView, init, profileSelection, profileView, update, view)
+module Page.Profile exposing (Model, Msg(..), Profile, Result, fetch, init, profileSelection, profileView, update, view)
 
 import Config exposing (globalConfig)
 import Element exposing (Length, alignRight, centerX, centerY, fill, fillPortion, height, minimum, padding, px, spacing, text, width)
 import Element.Background
 import Element.Border
 import Element.Font
-import Element.Input
 import Element.Region exposing (heading)
 import Fonts
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Metrics.Duration as Duration exposing (Duration(..))
+import Metrics.VDOT as VDOT
 import Pallette
 import RemoteData exposing (RemoteData)
 import Treningsplan.Object
 import Treningsplan.Object.Profile
+import Treningsplan.Object.Record
 import Treningsplan.Query
-import VDOT
 
 
 type Msg
@@ -33,6 +34,14 @@ type alias Profile =
     , firstname : String
     , surname : String
     , vdot : Int
+    , records : List Record
+    }
+
+
+type alias Record =
+    { id : String
+    , race : String
+    , duration : Duration
     }
 
 
@@ -46,11 +55,20 @@ init =
 
 profileSelection : SelectionSet Profile Treningsplan.Object.Profile
 profileSelection =
-    SelectionSet.map4 Profile
+    SelectionSet.map5 Profile
         Treningsplan.Object.Profile.id
         Treningsplan.Object.Profile.firstname
         Treningsplan.Object.Profile.surname
         Treningsplan.Object.Profile.vdot
+        (Treningsplan.Object.Profile.records recordSelection)
+
+
+recordSelection : SelectionSet Record Treningsplan.Object.Record
+recordSelection =
+    SelectionSet.map3 Record
+        Treningsplan.Object.Record.id
+        Treningsplan.Object.Record.race
+        (SelectionSet.map Seconds Treningsplan.Object.Record.duration)
 
 
 fetch : String -> Cmd Msg
@@ -114,7 +132,7 @@ profileView : Profile -> Element.Element Msg
 profileView profile =
     let
         maybeVdot =
-            VDOT.getVdot (profile.vdot |> String.fromInt)
+            VDOT.getVdot profile.vdot
     in
     Element.column [ height fill, width fill, padding 40, spacing 40 ]
         [ Element.row
@@ -135,15 +153,41 @@ profileView profile =
             ]
         , Element.wrappedRow
             [ width fill, height <| fillPortion 19, spacing 40 ]
-            [ Element.el [ height (fill |> minimum 400), width <| (fillPortion 2 |> minimum 300), Element.Background.color <| Pallette.light_slate_grey ] <|
-                smallHeader <|
+            [ Element.column
+                [ height (fill |> minimum 400)
+                , width <| (fillPortion 2 |> minimum 300)
+                , Element.Background.color <| Pallette.light_slate_grey_with_opacity
+                ]
+              <|
+                [ smallHeader <|
                     "Personal records"
+                , Element.column [ padding 20, spacing 20 ] <|
+                    Element.row [ Element.Font.bold, spacing 30, width (fill |> minimum 130) ]
+                        [ Element.el [ width fill ] <| Element.text "Race"
+                        , Element.text "Duration"
+                        ]
+                        :: List.map
+                            (\record ->
+                                Element.row [ spacing 30, width (fill |> minimum 100) ]
+                                    [ Element.el [ width (fill |> minimum 130) ] <| Element.text record.race
+                                    , Element.text <| Duration.format record.duration
+                                    ]
+                            )
+                            (List.sortBy
+                                (\r ->
+                                    case r.duration of
+                                        Seconds sec ->
+                                            sec
+                                )
+                                profile.records
+                            )
+                ]
             , Element.column [ height (fill |> minimum 400), width <| (fillPortion 3 |> minimum 300) ]
                 [ Element.column
                     [ heading 2
                     , height fill
                     , width fill
-                    , Element.Background.color <| Pallette.light_slate_grey
+                    , Element.Background.color <| Pallette.light_slate_grey_with_opacity
                     ]
                   <|
                     [ smallHeader <|
@@ -198,45 +242,3 @@ vdotView profile =
             text <|
                 "vdot: "
                     ++ String.fromInt profile.vdot
-
-
-headerView : Model -> Element.Element Msg
-headerView model =
-    case model.profile of
-        RemoteData.Success profile ->
-            case profile of
-                Just p ->
-                    loggedInView p
-
-                Nothing ->
-                    loginButton
-
-        RemoteData.Loading ->
-            text "Logging in..."
-
-        RemoteData.Failure _ ->
-            loginButton
-
-        RemoteData.NotAsked ->
-            loginButton
-
-
-loginButton : Element.Element Msg
-loginButton =
-    Element.Input.button
-        [ Element.Background.color Pallette.light_slate_grey
-        , Element.padding 5
-        ]
-        { onPress = Just <| LogIn "recfBcTSvqs8CyrCk"
-        , label = text "Login"
-        }
-
-
-loggedInView : Profile -> Element.Element Msg
-loggedInView profile =
-    Element.el
-        [ Element.padding 5
-        , Element.Font.color Pallette.light_slate_grey
-        ]
-    <|
-        text profile.firstname

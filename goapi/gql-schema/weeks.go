@@ -7,7 +7,7 @@ import (
 	"goapi/resolvables/weeks"
 )
 
-func weekFields(dayType *graphql.Object, resolvableDays days.Resolvable) graphql.Fields {
+func weekFields(resolvableDays days.Resolvable, dayType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -27,11 +27,11 @@ func weekFields(dayType *graphql.Object, resolvableDays days.Resolvable) graphql
 	}
 }
 
-func weekType(dayType *graphql.Object, resolvableDays days.Resolvable) *graphql.Object {
+func weekType(resolvableDays days.Resolvable, dayType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Week",
-			Fields: weekFields(dayType, resolvableDays),
+			Fields: weekFields(resolvableDays, dayType),
 		},
 	)
 }

@@ -2,34 +2,21 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Element exposing (alignLeft, alignRight, fill, height, px, width)
+import Element exposing (fill, height, px, width)
 import Element.Background
 import Element.Region
 import Fonts
 import Html exposing (Html)
+import Navigation exposing (Page(..))
 import Page.Overview as Overview
 import Page.Plan as PlanPage
 import Page.Profile as ProfilePage
 import Page.Workout as WorkoutPage
 import Url exposing (Url)
-import Url.Parser as Url exposing ((</>), Parser)
 
 
 
 ---- MODEL ----
-
-
-type Page
-    = Index
-    | PlanPage String
-    | WorkoutPage String
-    | ProfilePage String
-
-
-type alias Router =
-    { key : Nav.Key
-    , page : Page
-    }
 
 
 type alias Model =
@@ -37,11 +24,11 @@ type alias Model =
     , plan : PlanPage.Model
     , workout : WorkoutPage.Model
     , profile : ProfilePage.Model
-    , router : Router
+    , navigation : Navigation.Model
     }
 
 
-fetchDataForPage : Page -> Cmd Msg
+fetchDataForPage : Navigation.Page -> Cmd Msg
 fetchDataForPage page =
     case page of
         Index ->
@@ -61,33 +48,16 @@ init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         page =
-            urlToPage url
+            Navigation.urlToPage url
     in
     ( { overview = Overview.init
       , plan = PlanPage.init
       , workout = WorkoutPage.init
       , profile = ProfilePage.init
-      , router = { key = key, page = page }
+      , navigation = Navigation.init key page
       }
     , fetchDataForPage page
     )
-
-
-urlToPage : Url -> Page
-urlToPage url =
-    url
-        |> Url.parse urlParser
-        |> Maybe.withDefault Index
-
-
-urlParser : Parser (Page -> a) a
-urlParser =
-    Url.oneOf
-        [ Url.map Index Url.top
-        , Url.map PlanPage (Url.s "plans" </> Url.string)
-        , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
-        , Url.map ProfilePage (Url.s "profiles" </> Url.string)
-        ]
 
 
 
@@ -135,13 +105,13 @@ update msg model =
             ( { model | profile = profileModel }, Cmd.map ProfileMsg profileCmd )
 
         UrlChanged page ->
-            ( { model | router = { page = page, key = model.router.key } }, fetchDataForPage page )
+            ( { model | navigation = { page = page, key = model.navigation.key } }, fetchDataForPage page )
 
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Nav.pushUrl model.router.key (Url.toString url)
+                    , Nav.pushUrl model.navigation.key (Url.toString url)
                     )
 
                 Browser.External url ->
@@ -158,11 +128,7 @@ createLayout : Model -> Element.Element Msg -> List (Html Msg)
 createLayout model page =
     [ Element.layout [ Fonts.body, Element.Background.image "%PUBLIC_URL%/asoggetti-GYr9A2CPMhY-unsplash.svg" ] <|
         Element.column [ width fill, height fill ] <|
-            [ Element.map ProfileMsg <|
-                Element.el
-                    [ alignRight ]
-                <|
-                    ProfilePage.headerView model.profile
+            [ Element.map ProfileMsg <| Navigation.view model.navigation model.profile.profile
             , page
             , Element.el [ Element.Region.footer, height <| px 200 ] Element.none
             ]
@@ -171,7 +137,7 @@ createLayout model page =
 
 view : Model -> Document Msg
 view model =
-    case model.router.page of
+    case model.navigation.page of
         Index ->
             let
                 { title, body } =
@@ -215,7 +181,7 @@ view model =
 
 onUrlChange : Url -> Msg
 onUrlChange url =
-    UrlChanged <| urlToPage url
+    UrlChanged <| Navigation.urlToPage url
 
 
 main : Program () Model Msg

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.Profile exposing (firstname, id, records, surname, vdot)
+module Treningsplan.Object.Record exposing (duration, id, race)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -20,30 +20,18 @@ import Treningsplan.Union
 
 
 {-| -}
-firstname : SelectionSet String Treningsplan.Object.Profile
-firstname =
-    Object.selectionForField "String" "firstname" [] Decode.string
+duration : SelectionSet Int Treningsplan.Object.Record
+duration =
+    Object.selectionForField "Int" "duration" [] Decode.int
 
 
 {-| -}
-id : SelectionSet String Treningsplan.Object.Profile
+id : SelectionSet String Treningsplan.Object.Record
 id =
     Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-records : SelectionSet decodesTo Treningsplan.Object.Record -> SelectionSet (List decodesTo) Treningsplan.Object.Profile
-records object_ =
-    Object.selectionForCompositeField "records" [] object_ (identity >> Decode.list)
-
-
-{-| -}
-surname : SelectionSet String Treningsplan.Object.Profile
-surname =
-    Object.selectionForField "String" "surname" [] Decode.string
-
-
-{-| -}
-vdot : SelectionSet Int Treningsplan.Object.Profile
-vdot =
-    Object.selectionForField "Int" "vdot" [] Decode.int
+race : SelectionSet String Treningsplan.Object.Record
+race =
+    Object.selectionForField "String" "race" [] Decode.string

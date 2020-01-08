@@ -131,7 +131,7 @@ planLinkView : Plan -> Element.Element Msg
 planLinkView plan =
     Element.link
         [ width (fill |> maximum 400 |> minimum 300)
-        , Background.color <| Pallette.light_slate_grey
+        , Background.color <| Pallette.light_slate_grey_with_opacity
         , pointer
         ]
         { url = "/plans/" ++ plan.id

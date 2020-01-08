@@ -12,11 +12,9 @@ func workoutIntensityFields() graphql.Fields {
 		"distance": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 		},
-		// TODO: graphql.ID?
 		"intensity": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
-		// TODO: enum?
 		"metric": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewEnum(graphql.EnumConfig{
 				Name: "Metric",

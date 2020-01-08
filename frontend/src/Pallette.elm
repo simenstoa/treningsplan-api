@@ -1,6 +1,6 @@
-module Pallette exposing (brown_sugar, ebony, light_moss_green, light_slate_grey, sunray)
+module Pallette exposing (brown_sugar, ebony, light_moss_green, light_slate_grey, light_slate_grey_with_opacity, sunray)
 
-import Element exposing (rgb255)
+import Element exposing (rgb255, rgba255)
 
 
 brown_sugar =
@@ -13,6 +13,10 @@ light_moss_green =
 
 light_slate_grey =
     rgb255 114 134 160
+
+
+light_slate_grey_with_opacity =
+    rgba255 114 134 160 0.5
 
 
 sunray =

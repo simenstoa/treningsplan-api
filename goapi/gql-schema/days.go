@@ -6,7 +6,7 @@ import (
 	"goapi/resolvables/workouts"
 )
 
-func dayFields(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvable) graphql.Fields {
+func dayFields(resolvableWorkouts workouts.Resolvable, workoutType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -39,11 +39,11 @@ func dayFields(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvab
 	}
 }
 
-func dayType(workoutType *graphql.Object, resolvableWorkouts workouts.Resolvable) *graphql.Object {
+func dayType(resolvableWorkouts workouts.Resolvable, workoutType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Day",
-			Fields: dayFields(workoutType, resolvableWorkouts),
+			Fields: dayFields(resolvableWorkouts, workoutType),
 		},
 	)
 }

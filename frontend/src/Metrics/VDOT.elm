@@ -1,10 +1,10 @@
-module VDOT exposing (getVdot, intensityToString, workoutPaceToString)
+module Metrics.VDOT exposing (getVdot, intensityToString, workoutPaceToString)
 
 import List.Extra
 
 
 type alias VDOT =
-    { value : String
+    { value : Int
     , racePrediction : List RacePrediction
     , workoutPace : List WorkoutPace
     }
@@ -90,7 +90,7 @@ type alias Race =
 
 table : List VDOT
 table =
-    [ { value = "57"
+    [ { value = 57
       , racePrediction = [ { race = { name = "10k", distance = Meter 10000 }, pace = SecPerKm 222 } ]
       , workoutPace =
             [ { intensity = Easy, pace = Between (SecPerKm 276) (SecPerKm 305) }
@@ -103,6 +103,6 @@ table =
     ]
 
 
-getVdot : String -> Maybe VDOT
+getVdot : Int -> Maybe VDOT
 getVdot vdot =
     List.Extra.find (\v -> v.value == vdot) table

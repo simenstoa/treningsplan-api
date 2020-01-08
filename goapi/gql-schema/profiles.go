@@ -4,9 +4,10 @@ import (
 	"github.com/graphql-go/graphql"
 	"goapi/gql-common"
 	"goapi/resolvables/profiles"
+	"goapi/resolvables/records"
 )
 
-func profileFields() graphql.Fields {
+func profileFields(resolvableRecord records.Resolvable, recordType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -20,14 +21,20 @@ func profileFields() graphql.Fields {
 		"vdot": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 		},
+		"records": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(recordType))),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return resolvableRecord.GetByParentId(p.Context, p.Source.(profiles.Profile).Id)
+			},
+		},
 	}
 }
 
-func profileType() *graphql.Object {
+func profileType(resolvableRecord records.Resolvable, recordType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Profile",
-			Fields: profileFields(),
+			Fields: profileFields(resolvableRecord, recordType),
 		},
 	)
 }
