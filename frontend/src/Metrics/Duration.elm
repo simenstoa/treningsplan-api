@@ -24,7 +24,7 @@ format duration =
 
             else
                 (if hours > 0 then
-                    String.padLeft 2 '0' (String.fromInt hours) ++ ":"
+                    String.fromInt hours ++ ":"
 
                  else
                     ""
