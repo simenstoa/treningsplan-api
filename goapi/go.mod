@@ -9,6 +9,7 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/graphql-go/handler v0.2.3
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.3.0
 	github.com/pkg/errors v0.8.1
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.4.2

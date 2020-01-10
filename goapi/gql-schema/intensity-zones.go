@@ -19,11 +19,11 @@ var intensityZoneFields = graphql.Fields{
 	"name": &graphql.Field{
 		Type: graphql.NewNonNull(graphql.String),
 	},
-	"intensityType": &graphql.Field{
-		Type: graphql.NewNonNull(graphql.String),
-	},
 	"description": &graphql.Field{
 		Type: graphql.String,
+	},
+	"coefficient": &graphql.Field{
+		Type: graphql.NewNonNull(graphql.Float),
 	},
 }
 

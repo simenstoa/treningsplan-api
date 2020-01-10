@@ -60,8 +60,8 @@ init _ url key =
       , navigation = Navigation.init key page
       }
     , Cmd.batch
-        [ fetchDataForPage page
-        , Cmd.map ProfileMsg <| ProfilePage.fetch userId
+        [ Cmd.map ProfileMsg <| ProfilePage.fetch userId
+        , fetchDataForPage page
         ]
     )
 

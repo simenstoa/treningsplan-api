@@ -8,6 +8,12 @@ import (
 type Config struct {
 	AirtableSecret string `split_words:"true"`
 
+	PostgresHost     string `split_words:"true" default:"localhost"`
+	PostgresPort     int    `split_words:"true" default:"5432"`
+	PostgresUser     string `split_words:"true" default:""`
+	PostgresPassword string `split_words:"true" default:""`
+	PostgresName     string `split_words:"true" default:"strides"`
+
 	LogJson       bool   `split_words:"true" default:"true"`
 	LogLevel      string `split_words:"true" default:"debug"`
 	LogFile       string `split_words:"true" default:""`

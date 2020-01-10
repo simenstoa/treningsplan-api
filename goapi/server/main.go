@@ -7,6 +7,7 @@ import (
 	"goapi/appcontext"
 	"goapi/appcontext/initctx"
 	"goapi/config"
+	"goapi/database"
 	gqlschema "goapi/gql-schema"
 	"goapi/logger"
 	"goapi/resolvables/days"
@@ -51,7 +52,19 @@ func main() {
 		log.WithError(err).Panic("failed to create airtable client")
 	}
 
-	resolvableIntensity := intensityzones.NewResolvable(airtableClient)
+	log.Info("setting up database client")
+	databaseClient, err := database.NewClient(startupCtx, cfg)
+	if err != nil {
+		log.WithError(err).Panic("failed to create database client")
+	}
+	defer func() {
+		err := databaseClient.Close()
+		if err != nil {
+			log.WithError(err).Error("Error while closing db connection")
+		}
+	}()
+
+	resolvableIntensity := intensityzones.NewResolvable(airtableClient, databaseClient)
 	resolvableWorkout := workouts.NewResolvable(airtableClient)
 	resolvableDay := days.NewResolvable(airtableClient)
 	resolvableWeek := weeks.NewResolvable(airtableClient)
