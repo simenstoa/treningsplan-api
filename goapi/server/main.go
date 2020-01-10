@@ -76,7 +76,7 @@ func main() {
 	log.Info("setting up graphql schema")
 	schema, err := gqlschema.InitSchema(
 		resolvableIntensity, resolvableWorkout, resolvableDay, resolvableWeek, resolvablePlan,
-		resolvableWorkoutIntensities, resolvableProfiles, resolvableRecords,
+		resolvableWorkoutIntensities, resolvableProfiles, resolvableRecords, databaseClient,
 	)
 	if err != nil {
 		log.WithError(err).Panic("failed to create new schema")

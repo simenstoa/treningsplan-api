@@ -5,9 +5,9 @@ import (
 	"goapi/resolvables/intensity-zones"
 )
 
-var intensityZoneType = graphql.NewObject(
+var intensityType = graphql.NewObject(
 	graphql.ObjectConfig{
-		Name:   "IntensityZone",
+		Name:   "Intensity",
 		Fields: intensityZoneFields,
 	},
 )
@@ -29,7 +29,7 @@ var intensityZoneFields = graphql.Fields{
 
 func intensityZonesField(resolvableIntensityZones intensityzones.Resolvable) *graphql.Field {
 	return &graphql.Field{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(intensityZoneType))),
+		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(intensityType))),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return resolvableIntensityZones.GetAll(p.Context)
 		},

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.IntensityZone exposing (coefficient, description, id, name)
+module Treningsplan.Object.Intensity exposing (coefficient, description, id, name)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -20,24 +20,24 @@ import Treningsplan.Union
 
 
 {-| -}
-coefficient : SelectionSet Float Treningsplan.Object.IntensityZone
+coefficient : SelectionSet Float Treningsplan.Object.Intensity
 coefficient =
     Object.selectionForField "Float" "coefficient" [] Decode.float
 
 
 {-| -}
-description : SelectionSet (Maybe String) Treningsplan.Object.IntensityZone
+description : SelectionSet (Maybe String) Treningsplan.Object.Intensity
 description =
     Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
 
 
 {-| -}
-id : SelectionSet String Treningsplan.Object.IntensityZone
+id : SelectionSet String Treningsplan.Object.Intensity
 id =
     Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}
-name : SelectionSet String Treningsplan.Object.IntensityZone
+name : SelectionSet String Treningsplan.Object.Intensity
 name =
     Object.selectionForField "String" "name" [] Decode.string

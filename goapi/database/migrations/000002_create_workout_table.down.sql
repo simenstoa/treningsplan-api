@@ -1,0 +1,7 @@
+BEGIN;
+
+DROP TABLE IF EXISTS workout;
+DROP TYPE IF EXISTS metric;
+DROP TABLE IF EXISTS workout_parts;
+
+COMMIT;
