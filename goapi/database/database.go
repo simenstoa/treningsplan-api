@@ -114,7 +114,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
        			i.intensity_uid, i.name, i.description, i.coefficient 
 				FROM workout AS w 
 			    JOIN workout_parts AS wp USING(workout_uid) 
-			    JOIN Intensity as I USING(intensity_uid);`
+			    JOIN intensity as i USING(intensity_uid);`
 
 	rows, err := c.db.Query(sqlStatement)
 	if err != nil {
@@ -144,6 +144,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 		part.Intensity = intensity
 		if existingWorkout, ok := workouts[workout.Id]; ok {
 			existingWorkout.Parts = append(existingWorkout.Parts, part)
+			workouts[workout.Id] = existingWorkout
 		} else {
 			workout.Parts = append(workout.Parts, part)
 			workouts[workout.Id] = workout
