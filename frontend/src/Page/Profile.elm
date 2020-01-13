@@ -9,6 +9,7 @@ import Element.Region exposing (heading)
 import Fonts
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Headers
 import Metrics.Duration as Duration exposing (Duration(..))
 import Metrics.VDOT as VDOT
 import Pallette
@@ -159,7 +160,7 @@ profileView profile =
                 , Element.Background.color <| Pallette.light_slate_grey_with_opacity
                 ]
               <|
-                [ smallHeader <|
+                [ Headers.smallHeader <|
                     "Personal records"
                 , Element.column [ padding 20, spacing 20 ] <|
                     Element.row [ Element.Font.bold, spacing 30, width (fill |> minimum 130) ]
@@ -190,7 +191,7 @@ profileView profile =
                     , Element.Background.color <| Pallette.light_slate_grey_with_opacity
                     ]
                   <|
-                    [ smallHeader <|
+                    [ Headers.smallHeader <|
                         "Workout pace"
                     , case maybeVdot of
                         Just vdot ->
@@ -214,13 +215,6 @@ profileView profile =
                 ]
             ]
         ]
-
-
-smallHeader : String -> Element.Element Msg
-smallHeader header =
-    Element.el [ heading 2, padding 20, Element.Font.size 30, Fonts.heading ] <|
-        text <|
-            header
 
 
 vdotView : Profile -> Element.Element Msg

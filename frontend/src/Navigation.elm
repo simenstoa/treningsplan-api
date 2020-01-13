@@ -19,10 +19,12 @@ type Page
     | PlanPage String
     | WorkoutPage String
     | ProfilePage String
+    | IntensityPage
 
 
 type NavigationTab
     = Plans
+    | Intensity
     | Profile
 
 
@@ -41,6 +43,7 @@ view : Model -> Profile.Result -> Element.Element Profile.Msg
 view model profile =
     Element.row [ Element.Region.navigation, alignRight ]
         [ link model.page Plans { url = "/", label = Element.text "Plans" }
+        , link model.page Intensity { url = "/intensity", label = Element.text "Intensity" }
         , profileTab model profile
         ]
 
@@ -129,6 +132,9 @@ pageToNavigationTab page =
         ProfilePage _ ->
             Just Profile
 
+        IntensityPage ->
+            Just Intensity
+
         _ ->
             Nothing
 
@@ -147,4 +153,5 @@ urlParser =
         , Url.map PlanPage (Url.s "plans" </> Url.string)
         , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
         , Url.map ProfilePage (Url.s "profiles" </> Url.string)
+        , Url.map IntensityPage (Url.s "intensity")
         ]

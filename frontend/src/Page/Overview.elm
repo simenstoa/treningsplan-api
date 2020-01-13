@@ -8,6 +8,7 @@ import Element.Region exposing (heading)
 import Fonts
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Headers
 import List.Extra
 import Pallette
 import RemoteData exposing (RemoteData)
@@ -106,15 +107,7 @@ plansView plans =
         [ width fill
         ]
     <|
-        [ el
-            [ heading 1
-            , Fonts.heading
-            , Font.size 64
-            , alignTop
-            , padding 30
-            ]
-          <|
-            text "Plans"
+        [ Headers.mainHeader "Plans"
         , Element.wrappedRow
             [ width fill
             , spacing 60
@@ -137,7 +130,7 @@ planLinkView plan =
         { url = "/plans/" ++ plan.id
         , label =
             column [ width fill, spaceEvenly, alignLeft, padding 30, spacing 10 ]
-                [ el [ heading 2, Font.size 24 ] <| text <| plan.name
+                [ Headers.paragraphHeader <| plan.name
                 , text <| "Duration: " ++ (plan.weeks |> List.length |> String.fromInt) ++ " weeks"
                 , text <| "Distance: " ++ formatDistanceForPlan plan.weeks
                 ]

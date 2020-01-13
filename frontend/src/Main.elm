@@ -4,10 +4,12 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Element exposing (fill, height, px, width)
 import Element.Background
+import Element.Font
 import Element.Region
 import Fonts
 import Html exposing (Html)
 import Navigation exposing (Page(..))
+import Page.Intensity as IntensityPage
 import Page.Overview as Overview
 import Page.Plan as PlanPage
 import Page.Profile as ProfilePage
@@ -24,6 +26,7 @@ type alias Model =
     , plan : PlanPage.Model
     , workout : WorkoutPage.Model
     , profile : ProfilePage.Model
+    , intensity : IntensityPage.Model
     , navigation : Navigation.Model
     }
 
@@ -43,6 +46,9 @@ fetchDataForPage page =
         ProfilePage id ->
             Cmd.map ProfileMsg <| ProfilePage.fetch id
 
+        IntensityPage ->
+            Cmd.map IntensityMsg <| IntensityPage.fetch
+
 
 init : flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
@@ -57,6 +63,7 @@ init _ url key =
       , plan = PlanPage.init
       , workout = WorkoutPage.init
       , profile = ProfilePage.init
+      , intensity = IntensityPage.init
       , navigation = Navigation.init key page
       }
     , Cmd.batch
@@ -75,6 +82,7 @@ type Msg
     | PlanMsg PlanPage.Msg
     | WorkoutMsg WorkoutPage.Msg
     | ProfileMsg ProfilePage.Msg
+    | IntensityMsg IntensityPage.Msg
     | UrlChanged Page
     | LinkClicked Browser.UrlRequest
 
@@ -110,6 +118,13 @@ update msg model =
             in
             ( { model | profile = profileModel }, Cmd.map ProfileMsg profileCmd )
 
+        IntensityMsg intensityMsg ->
+            let
+                ( intensityModel, intensityCmd ) =
+                    IntensityPage.update intensityMsg model.intensity
+            in
+            ( { model | intensity = intensityModel }, Cmd.map IntensityMsg intensityCmd )
+
         UrlChanged page ->
             ( { model | navigation = { page = page, key = model.navigation.key } }, fetchDataForPage page )
 
@@ -132,7 +147,7 @@ update msg model =
 
 createLayout : Model -> Element.Element Msg -> List (Html Msg)
 createLayout model page =
-    [ Element.layout [ Fonts.body, Element.Background.image "%PUBLIC_URL%/asoggetti-GYr9A2CPMhY-unsplash.svg" ] <|
+    [ Element.layout [ Element.Font.size 18, Fonts.body, Element.Background.image "%PUBLIC_URL%/asoggetti-GYr9A2CPMhY-unsplash.svg" ] <|
         Element.column [ width fill, height fill ] <|
             [ Element.map ProfileMsg <| Navigation.view model.navigation model.profile.profile
             , page
@@ -178,6 +193,15 @@ view model =
             in
             { title = title
             , body = createLayout model <| Element.map ProfileMsg body
+            }
+
+        IntensityPage ->
+            let
+                { title, body } =
+                    IntensityPage.view model.intensity
+            in
+            { title = title
+            , body = createLayout model <| Element.map IntensityMsg body
             }
 
 
