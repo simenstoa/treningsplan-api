@@ -9,7 +9,7 @@ module Page.Workout exposing
     )
 
 import Config exposing (globalConfig)
-import Element exposing (Length, alignRight, alignTop, centerX, centerY, fill, height, maximum, minimum, padding, spacing, text, width)
+import Element exposing (Length, alignRight, alignTop, centerX, centerY, fill, height, maximum, minimum, padding, px, spaceEvenly, spacing, text, width)
 import Element.Background
 import Element.Font
 import Graphics.LineChart as LineChart
@@ -158,7 +158,6 @@ workoutView profile workout =
     Element.column
         [ height fill, width fill, padding 20 ]
         [ Headers.mainHeader workout.name
-        , Element.paragraph [ padding 20, Element.Font.alignLeft ] [ text (Maybe.withDefault "" workout.description) ]
         , Element.el [ padding 10, width fill, spacing 20 ] <|
             case profile of
                 RemoteData.Success data ->
@@ -188,36 +187,39 @@ workoutDetailsView profile workout =
 
         totalDistance =
             getTotalDistanceInMeter vdot workout.parts
+    in
+    Element.column [ width fill, spacing 20, Element.Background.color Pallette.light_slate_grey_with_opacity, padding 20 ]
+        [ Headers.paragraphHeader <| "Workout details"
+        , Element.wrappedRow [ width fill, spacing 40 ]
+            [ Element.column [ height fill, alignTop, spacing 20 ]
+                [ Element.paragraph []
+                    [ text <| "For " ++ profile.firstname ++ " " ++ profile.surname ++ " with vdot " ++ String.fromInt profile.vdot ]
+                , workoutDescription workout vdot totalDistance
+                ]
+            , Element.el [ alignTop, width (fill |> minimum 200 |> maximum 800) ] <| Element.html <| graph totalDistance 2.5 <| second <| List.foldl (getPoints vdot) ( 0, [] ) workout.parts
+            ]
+        , workoutPartsDescription vdot workout.parts
+        ]
 
+
+workoutDescription : Workout -> VDOT -> Float -> Element.Element msg
+workoutDescription workout vdot totalDistance =
+    let
         totalDuration =
             getTotalDistanceInSeconds vdot workout.parts
 
         totalStress =
             getTotalIntensity vdot workout.parts
     in
-    Element.column [ width fill, spacing 20, Element.Background.color Pallette.light_slate_grey_with_opacity, padding 20 ]
-        [ Headers.paragraphHeader <| "Workout details"
-        , Element.wrappedRow [ width fill, spacing 40 ]
-            [ Element.column [ spacing 10 ]
-                [ Element.paragraph []
-                    [ text <| "For " ++ profile.firstname ++ " " ++ profile.surname ++ " with vdot " ++ String.fromInt profile.vdot ]
-                , workoutDescription totalDistance totalDuration totalStress
-                , workoutPartsDescription vdot workout.parts
-                ]
-            , Element.el [ alignTop, width (fill |> minimum 200 |> maximum 800) ] <| Element.html <| graph totalDistance 2.5 <| second <| List.foldl (getPoints vdot) ( 0, [] ) workout.parts
-            ]
-        ]
-
-
-workoutDescription : Float -> Int -> Float -> Element.Element msg
-workoutDescription totalDistance totalDuration totalStress =
-    Element.column [ width (fill |> maximum 400 |> minimum 275), Element.Background.color Pallette.light_slate_grey, padding 10, spacing 10 ]
+    Element.column [ height fill, alignTop, width <| px 275, Element.Background.color <| Pallette.light_slate_grey, padding 10, spacing 10 ]
         [ Headers.smallParagraphHeader "Overview"
         , Element.wrappedRow [ width fill, spacing 15 ]
-            [ Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Distance", Element.column [ alignRight ] [ text <| formatKm totalDistance ] ]
-            , Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Duration", Element.column [ alignRight ] [ text <| Duration.format <| Seconds totalDuration ] ]
-            , Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Stress", Element.column [ alignRight ] [ text <| formatStress totalStress ] ]
+            [ Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Distance", Element.column [] [ text <| formatKm totalDistance ] ]
+            , Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Duration", Element.paragraph [] [ text <| Duration.format <| Seconds totalDuration ] ]
+            , Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Stress", Element.column [] [ text <| formatStress totalStress ] ]
             ]
+        , Element.column [ alignTop, spacing 5, width fill ] [ Element.el [ Element.Font.size 10 ] <| text <| "Description", Element.paragraph [] [ text <| Maybe.withDefault "" workout.description ] ]
+        , Element.column [ alignTop, spacing 5, width fill ] [ Element.el [ Element.Font.size 10 ] <| text <| "Intensities", getIntensitiesOverview vdot workout.parts ]
         ]
 
 
@@ -226,15 +228,38 @@ graph xMax yMax points =
     LineChart.view xMax yMax points
 
 
+workoutPartsDescription : VDOT -> List WorkoutPart -> Element.Element msg
 workoutPartsDescription vdot parts =
-    Element.column [ width (fill |> maximum 400 |> minimum 275), Element.Background.color Pallette.light_slate_grey, padding 11, spacing 10 ]
+    Element.column [ spacing 10 ]
         [ Headers.smallParagraphHeader "Parts"
-        , Element.wrappedRow [ width fill, spacing 15 ]
-            [ Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Distance", Element.column [ alignRight, spacing 5 ] <| List.map (\part -> text <| formatKm <| getDistanceForPartInMeter vdot part) parts ]
-            , Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Duration", Element.column [ alignRight, spacing 5 ] <| List.map (\part -> text <| Duration.format <| Seconds <| getDistanceForPartInSeconds vdot part) parts ]
-            , Element.column [ spacing 5 ] [ Element.el [ alignRight ] <| text <| "Stress", Element.column [ alignRight, spacing 5 ] <| List.map (\part -> text <| formatStress <| getStressForPart vdot part) parts ]
+        , Element.wrappedRow [ spacing 10 ] <| List.map (workoutPart vdot) parts
+        ]
+
+
+workoutPart : VDOT -> WorkoutPart -> Element.Element msg
+workoutPart vdot part =
+    Element.column [ height fill, alignTop, width <| px 275, Element.Background.color <| Pallette.light_slate_grey, padding 10, spacing 10 ]
+        [ Element.paragraph []
+            [ text <| (String.fromInt <| part.order + 1) ++ ".", text <| " " ++ part.intensity.name ]
+        , Element.row
+            [ spacing 20 ]
+            [ Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Distance", Element.paragraph [ padding 0, width (fill |> minimum 60) ] [ text <| formatKm <| getDistanceForPartInMeter vdot part ] ]
+            , Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Pace", Element.paragraph [] [ text <| VDOT.workoutPaceToString <| Maybe.withDefault VDOT.defaultPace <| getPaceDescription vdot part ] ]
+            , Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Duration", Element.paragraph [] [ text <| Duration.format <| Seconds <| getDistanceForPartInSeconds vdot part ] ]
+            , Element.column [ alignTop, spacing 5 ] [ Element.el [ Element.Font.size 10 ] <| text <| "Stress", Element.paragraph [] [ text <| formatStress <| getStressForPart vdot part ] ]
             ]
         ]
+
+
+getIntensitiesOverview : VDOT -> List WorkoutPart -> Element.Element msg
+getIntensitiesOverview vdot workoutParts =
+    Element.column [ width fill, spacing 10 ] <|
+        (workoutParts
+            |> List.Extra.uniqueBy (\part -> part.intensity.id)
+            |> List.sortBy (\part -> part.intensity.coefficient)
+            |> List.map (\part -> ( part.intensity.name, Maybe.withDefault VDOT.defaultPace (getPaceDescription vdot part) ))
+            |> List.map (\( name, pace ) -> Element.row [ width fill, spaceEvenly ] [ Element.text name, Element.el [ alignRight ] <| Element.text <| VDOT.workoutPaceToString pace ++ " min/km" ])
+        )
 
 
 getTotalDistanceInMeter : VDOT -> List WorkoutPart -> Float
