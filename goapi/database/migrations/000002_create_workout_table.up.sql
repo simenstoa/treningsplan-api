@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS workout_parts (
    "order" INT NOT NULL,
    distance INT NOT NULL,
    metric metric,
-   PRIMARY KEY (workout_uid, intensity_uid, "order")
+   PRIMARY KEY (workout_uid, intensity_uid, "order") -- change to only workout_uid and "order"
 );
 
 COMMIT;

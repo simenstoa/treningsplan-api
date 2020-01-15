@@ -1,4 +1,17 @@
-module Metrics.VDOT exposing (getVdot, intensityToString, workoutPaceToString)
+module Metrics.VDOT exposing
+    ( PaceDescription
+    , VDOT
+    , defaultPace
+    , defaultVdot
+    , getVdot
+    , intensityToString
+    , meterFromDistanceForPace
+    , meterToDistance
+    , minuteToDistance
+    , secondsFromDistanceForPace
+    , toIntensity
+    , workoutPaceToString
+    )
 
 import List.Extra
 
@@ -82,27 +95,115 @@ type alias RacePrediction =
 
 type Distance
     = Meter Int
+    | Minute Int
 
 
 type alias Race =
     { name : String, distance : Distance }
 
 
+defaultVdot : VDOT
+defaultVdot =
+    { value = 57
+    , racePrediction = [ { race = { name = "10k", distance = Meter 10000 }, pace = SecPerKm 222 } ]
+    , workoutPace =
+        [ { intensity = Easy, pace = Between (SecPerKm 276) (SecPerKm 305) }
+        , { intensity = Marathon, pace = Constant (SecPerKm 243) }
+        , { intensity = Threshold, pace = Constant (SecPerKm 230) }
+        , { intensity = Interval, pace = Constant (SecPerKm 211) }
+        , { intensity = Repitition, pace = Constant (SecPerKm 196) }
+        ]
+    }
+
+
+defaultPace : PaceDescription
+defaultPace =
+    Constant (SecPerKm 243)
+
+
 table : List VDOT
 table =
-    [ { value = 57
-      , racePrediction = [ { race = { name = "10k", distance = Meter 10000 }, pace = SecPerKm 222 } ]
-      , workoutPace =
-            [ { intensity = Easy, pace = Between (SecPerKm 276) (SecPerKm 305) }
-            , { intensity = Marathon, pace = Constant (SecPerKm 243) }
-            , { intensity = Threshold, pace = Constant (SecPerKm 230) }
-            , { intensity = Interval, pace = Constant (SecPerKm 211) }
-            , { intensity = Repitition, pace = Constant (SecPerKm 196) }
-            ]
-      }
+    [ defaultVdot
     ]
+
+
+meterToDistance : Int -> Distance
+meterToDistance meter =
+    Meter meter
+
+
+minuteToDistance : Int -> Distance
+minuteToDistance minute =
+    Minute minute
+
+
+meterFromDistanceForPace : PaceDescription -> Distance -> Float
+meterFromDistanceForPace pace distance =
+    case distance of
+        Meter meter ->
+            toFloat meter
+
+        Minute minute ->
+            let
+                secPerKm =
+                    case pace of
+                        Constant (SecPerKm p) ->
+                            toFloat p
+
+                        Between (SecPerKm min) (SecPerKm max) ->
+                            toFloat (min + max) / 2
+
+                seconds =
+                    toFloat minute * 60
+            in
+            seconds / secPerKm
+
+
+secondsFromDistanceForPace : PaceDescription -> Distance -> Int
+secondsFromDistanceForPace pace distance =
+    case distance of
+        Meter meter ->
+            let
+                secPerKm =
+                    case pace of
+                        Constant (SecPerKm p) ->
+                            toFloat p
+
+                        Between (SecPerKm min) (SecPerKm max) ->
+                            toFloat (min + max) / 2
+            in
+            ceiling (toFloat meter / 1000 * secPerKm)
+
+        Minute minute ->
+            minute * 60
 
 
 getVdot : Int -> Maybe VDOT
 getVdot vdot =
     List.Extra.find (\v -> v.value == vdot) table
+
+
+toIntensity : String -> Intensity
+toIntensity str =
+    let
+        lowercase =
+            String.toLower str
+    in
+    case lowercase of
+        "easy" ->
+            Easy
+
+        "marathon" ->
+            Marathon
+
+        "threshold" ->
+            Threshold
+
+        "interval" ->
+            Interval
+
+        "repitition" ->
+            Repitition
+
+        _ ->
+            Easy

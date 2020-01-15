@@ -1,9 +1,8 @@
-module Page.Intensity exposing (Model, Msg, fetch, init, update, view)
+module Page.Intensity exposing (Intensity, Model, Msg, fetch, init, intensitySelection, update, view)
 
 import Color
 import Config exposing (globalConfig)
-import Element exposing (Length, alignTop, centerX, centerY, fill, fillPortion, height, maximum, padding, spacing, text, width)
-import Element.Region
+import Element exposing (Length, alignTop, centerX, fill, fillPortion, height, maximum, padding, spacing, text, width)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Headers

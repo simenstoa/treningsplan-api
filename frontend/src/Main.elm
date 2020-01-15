@@ -14,6 +14,7 @@ import Page.Overview as Overview
 import Page.Plan as PlanPage
 import Page.Profile as ProfilePage
 import Page.Workout as WorkoutPage
+import Page.Workouts as WorkoutsPage
 import Url exposing (Url)
 
 
@@ -24,6 +25,7 @@ import Url exposing (Url)
 type alias Model =
     { overview : Overview.Model
     , plan : PlanPage.Model
+    , workouts : WorkoutsPage.Model
     , workout : WorkoutPage.Model
     , profile : ProfilePage.Model
     , intensity : IntensityPage.Model
@@ -42,6 +44,9 @@ fetchDataForPage page =
 
         WorkoutPage id ->
             Cmd.map WorkoutMsg <| WorkoutPage.fetch id
+
+        WorkoutsPage ->
+            Cmd.map WorkoutsMsg <| WorkoutsPage.fetch
 
         ProfilePage id ->
             Cmd.map ProfileMsg <| ProfilePage.fetch id
@@ -62,6 +67,7 @@ init _ url key =
     ( { overview = Overview.init
       , plan = PlanPage.init
       , workout = WorkoutPage.init
+      , workouts = WorkoutsPage.init
       , profile = ProfilePage.init
       , intensity = IntensityPage.init
       , navigation = Navigation.init key page
@@ -81,6 +87,7 @@ type Msg
     = OverviewMsg Overview.Msg
     | PlanMsg PlanPage.Msg
     | WorkoutMsg WorkoutPage.Msg
+    | WorkoutsMsg WorkoutsPage.Msg
     | ProfileMsg ProfilePage.Msg
     | IntensityMsg IntensityPage.Msg
     | UrlChanged Page
@@ -110,6 +117,13 @@ update msg model =
                     WorkoutPage.update workoutMsg model.workout
             in
             ( { model | workout = workoutModel }, Cmd.map WorkoutMsg workoutCmd )
+
+        WorkoutsMsg workoutsMsg ->
+            let
+                ( workoutsModel, workoutsCmd ) =
+                    WorkoutsPage.update workoutsMsg model.workouts
+            in
+            ( { model | workouts = workoutsModel }, Cmd.map WorkoutsMsg workoutsCmd )
 
         ProfileMsg profileMsg ->
             let
@@ -180,10 +194,19 @@ view model =
         WorkoutPage _ ->
             let
                 { title, body } =
-                    WorkoutPage.view model.workout
+                    WorkoutPage.view model.profile.profile model.workout
             in
             { title = title
-            , body = List.map (Html.map WorkoutMsg) body
+            , body = createLayout model <| Element.map WorkoutMsg body
+            }
+
+        WorkoutsPage ->
+            let
+                { title, body } =
+                    WorkoutsPage.view model.workouts
+            in
+            { title = title
+            , body = createLayout model <| Element.map WorkoutsMsg body
             }
 
         ProfilePage _ ->

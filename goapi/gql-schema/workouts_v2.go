@@ -4,7 +4,6 @@ import (
 	"github.com/graphql-go/graphql"
 	"goapi/database"
 	"goapi/gql-common"
-	"goapi/resolvables/workouts"
 )
 
 var (
@@ -12,9 +11,6 @@ var (
 		graphql.ObjectConfig{
 			Name: "WorkoutPart",
 			Fields: graphql.Fields{
-				"id": &graphql.Field{
-					Type: graphql.NewNonNull(graphql.String),
-				},
 				"order": &graphql.Field{
 					Type: graphql.NewNonNull(graphql.Int),
 				},
@@ -75,7 +71,7 @@ func workoutV2sField(dbClient database.Client, workoutType *graphql.Object) *gra
 	}
 }
 
-func workoutV2Field(resolvableWorkout workouts.Resolvable, workoutType *graphql.Object) *graphql.Field {
+func workoutV2Field(dbClient database.Client, workoutType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
 		Type: workoutType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -83,7 +79,7 @@ func workoutV2Field(resolvableWorkout workouts.Resolvable, workoutType *graphql.
 			if err != nil {
 				return nil, err
 			}
-			return resolvableWorkout.Get(p.Context, id)
+			return dbClient.GetWorkout(p.Context, id)
 		},
 		Args: map[string]*graphql.ArgumentConfig{
 			"id": {

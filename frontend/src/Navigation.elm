@@ -1,9 +1,8 @@
 module Navigation exposing (Model, Page(..), init, urlParser, urlToPage, view)
 
 import Browser.Navigation as Nav
-import Element exposing (alignRight, mouseOver, spacing, text)
+import Element exposing (alignRight, mouseOver, text)
 import Element.Background
-import Element.Border
 import Element.Font
 import Element.Input
 import Element.Region
@@ -18,12 +17,14 @@ type Page
     = Index
     | PlanPage String
     | WorkoutPage String
+    | WorkoutsPage
     | ProfilePage String
     | IntensityPage
 
 
 type NavigationTab
     = Plans
+    | Workouts
     | Intensity
     | Profile
 
@@ -43,6 +44,7 @@ view : Model -> Profile.Result -> Element.Element Profile.Msg
 view model profile =
     Element.row [ Element.Region.navigation, alignRight ]
         [ link model.page Plans { url = "/", label = Element.text "Plans" }
+        , link model.page Workouts { url = "/workouts", label = Element.text "Workouts" }
         , link model.page Intensity { url = "/intensity", label = Element.text "Intensity" }
         , profileTab model profile
         ]
@@ -129,14 +131,20 @@ pageToNavigationTab page =
         Index ->
             Just Plans
 
+        PlanPage _ ->
+            Just Plans
+
         ProfilePage _ ->
             Just Profile
 
         IntensityPage ->
             Just Intensity
 
-        _ ->
-            Nothing
+        WorkoutsPage ->
+            Just Workouts
+
+        WorkoutPage _ ->
+            Just Workouts
 
 
 urlToPage : Url -> Page
@@ -152,6 +160,7 @@ urlParser =
         [ Url.map Index Url.top
         , Url.map PlanPage (Url.s "plans" </> Url.string)
         , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
+        , Url.map WorkoutsPage (Url.s "workouts")
         , Url.map ProfilePage (Url.s "profiles" </> Url.string)
         , Url.map IntensityPage (Url.s "intensity")
         ]

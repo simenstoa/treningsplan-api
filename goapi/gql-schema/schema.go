@@ -42,6 +42,7 @@ func InitSchema(
 				"plan":           planField(resolvablePlan, planType),
 				"profile":        profileField(resolvableProfile, profileType),
 				"workoutV2s":      workoutV2sField(dbClient, workoutV2Type),
+				"workoutV2":      workoutV2Field(dbClient, workoutV2Type),
 			},
 		})
 
