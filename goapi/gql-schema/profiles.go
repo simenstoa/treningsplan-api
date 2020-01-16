@@ -2,12 +2,11 @@ package gqlschema
 
 import (
 	"github.com/graphql-go/graphql"
+	"goapi/database"
 	"goapi/gql-common"
-	"goapi/resolvables/profiles"
-	"goapi/resolvables/records"
 )
 
-func profileFields(resolvableRecord records.Resolvable, recordType *graphql.Object) graphql.Fields {
+func profileFields(dbClient database.Client, recordType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -15,7 +14,7 @@ func profileFields(resolvableRecord records.Resolvable, recordType *graphql.Obje
 		"firstname": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
-		"surname": &graphql.Field{
+		"lastname": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"vdot": &graphql.Field{
@@ -24,22 +23,31 @@ func profileFields(resolvableRecord records.Resolvable, recordType *graphql.Obje
 		"records": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(recordType))),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return resolvableRecord.GetByParentId(p.Context, p.Source.(profiles.Profile).Id)
+				return dbClient.GetRecords(p.Context, p.Source.(database.Profile).Id)
 			},
 		},
 	}
 }
 
-func profileType(resolvableRecord records.Resolvable, recordType *graphql.Object) *graphql.Object {
+func profileType(dbClient database.Client, recordType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "Profile",
-			Fields: profileFields(resolvableRecord, recordType),
+			Fields: profileFields(dbClient, recordType),
 		},
 	)
 }
 
-func profileField(resolvableProfiles profiles.Resolvable, profileType *graphql.Object) *graphql.Field {
+func profilesField(dbClient database.Client, profileType *graphql.Object) *graphql.Field {
+	return &graphql.Field{
+		Type: graphql.NewNonNull(graphql.NewList(profileType)),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return dbClient.GetProfiles(p.Context)
+		},
+	}
+}
+
+func profileField(dbClient database.Client, profileType *graphql.Object) *graphql.Field {
 	return &graphql.Field{
 		Type: profileType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -47,7 +55,7 @@ func profileField(resolvableProfiles profiles.Resolvable, profileType *graphql.O
 			if err != nil {
 				return nil, err
 			}
-			return resolvableProfiles.Get(p.Context, id)
+			return dbClient.GetProfile(p.Context, id)
 		},
 		Args: map[string]*graphql.ArgumentConfig{
 			"id": {

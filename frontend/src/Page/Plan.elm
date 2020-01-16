@@ -7,6 +7,7 @@ import Element.Background exposing (color)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region exposing (heading)
+import Graphics.LineChart
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LineChart
@@ -268,10 +269,13 @@ chart hoveredWeek weeks =
 
 distanceGraph : Maybe WeekGraphPoint -> List Week -> Svg Msg
 distanceGraph hoveredWeek weeks =
-    weeks
-        |> List.sortBy (\w -> w.order)
-        |> List.map (\week -> { id = week.id, week = toFloat (week.order + 1), distance = toFloat week.distance / 1000.0 })
-        |> chart hoveredWeek
+    let
+        points =
+            weeks
+                |> List.sortBy (\w -> w.order)
+                |> List.map (\week -> ( toFloat (week.order + 1), toFloat week.distance / 1000.0 ))
+    in
+    Graphics.LineChart.view 1 14 0 80 points
 
 
 weekView : Week -> Element.Element Msg

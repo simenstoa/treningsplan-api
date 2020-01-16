@@ -18,6 +18,9 @@ type Client interface {
 	GetIntensities(ctx context.Context) ([]Intensity, error)
 	GetWorkouts(ctx context.Context) ([]Workout, error)
 	GetWorkout(ctx context.Context, id string) (Workout, error)
+	GetProfiles(ctx context.Context) ([]Profile, error)
+	GetProfile(ctx context.Context, id string) (Profile, error)
+	GetRecords(ctx context.Context, profileId string) ([]Record, error)
 }
 
 type client struct {
@@ -227,4 +230,100 @@ func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
 	})
 
 	return workout, nil
+}
+
+func (c *client) GetProfiles(ctx context.Context) ([]Profile, error) {
+	log := logger.FromContext(ctx)
+
+	sqlStatement := `SELECT profile_uid, first_name, last_name, vdot FROM profile;`
+
+	rows, err := c.db.Query(sqlStatement)
+	if err != nil {
+		log.WithError(err).Error("Error querying db")
+		return []Profile{}, err
+	}
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.WithError(err).Error("Error closing db query connection")
+		}
+	}()
+
+	var profiles []Profile
+	for rows.Next() {
+		var profile Profile
+		err = rows.Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Vdot)
+		if err != nil {
+			log.WithError(err).Error("Error while parsing db row")
+			return []Profile{}, err
+		}
+		profiles = append(profiles, profile)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		log.WithError(err).Error("Error while parsing db rows")
+		return []Profile{}, err
+	}
+
+	return profiles, nil
+}
+
+func (c *client) GetProfile(ctx context.Context, id string) (Profile, error) {
+	log := logger.FromContext(ctx)
+
+	sqlStatement :=
+		`SELECT profile_uid, first_name, last_name, vdot FROM profile WHERE profile_uid = $1;`
+
+	row := c.db.QueryRowContext(ctx, sqlStatement, id)
+	var profile Profile
+	err := row.Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Vdot)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			notFoundError := newEntityNotFoundError(err)
+			log.WithError(notFoundError).Error("Profile not found")
+			return Profile{}, notFoundError
+		}
+		log.WithError(err).Error("Error while parsing db row")
+		return Profile{}, err
+	}
+
+	return profile, nil
+}
+
+func (c *client) GetRecords(ctx context.Context, profileId string) ([]Record, error) {
+	log := logger.FromContext(ctx)
+
+	sqlStatement := `SELECT record_uid, race, duration FROM record WHERE profile_uid=$1;`
+
+	rows, err := c.db.Query(sqlStatement, profileId)
+	if err != nil {
+		log.WithError(err).Error("Error querying db")
+		return []Record{}, err
+	}
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.WithError(err).Error("Error closing db query connection")
+		}
+	}()
+
+	var records []Record
+	for rows.Next() {
+		var record Record
+		err = rows.Scan(&record.Id, &record.Race, &record.Duration)
+		if err != nil {
+			log.WithError(err).Error("Error while parsing db row")
+			return []Record{}, err
+		}
+		records = append(records, record)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		log.WithError(err).Error("Error while parsing db rows")
+		return []Record{}, err
+	}
+
+	return records, nil
 }

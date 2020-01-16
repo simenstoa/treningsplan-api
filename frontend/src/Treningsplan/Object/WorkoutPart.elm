@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.WorkoutPart exposing (distance, id, intensity, metric, order)
+module Treningsplan.Object.WorkoutPart exposing (distance, intensity, metric, order)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -24,12 +24,6 @@ import Treningsplan.Union
 distance : SelectionSet Int Treningsplan.Object.WorkoutPart
 distance =
     Object.selectionForField "Int" "distance" [] Decode.int
-
-
-{-| -}
-id : SelectionSet String Treningsplan.Object.WorkoutPart
-id =
-    Object.selectionForField "String" "id" [] Decode.string
 
 
 {-| -}

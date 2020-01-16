@@ -10,17 +10,17 @@ import Json.Decode as Decode exposing (Decoder)
 {-|
 
   - Meter -
-  - Minute -
+  - Second -
 
 -}
 type MetricV2
     = Meter
-    | Minute
+    | Second
 
 
 list : List MetricV2
 list =
-    [ Meter, Minute ]
+    [ Meter, Second ]
 
 
 decoder : Decoder MetricV2
@@ -32,8 +32,8 @@ decoder =
                     "METER" ->
                         Decode.succeed Meter
 
-                    "MINUTE" ->
-                        Decode.succeed Minute
+                    "SECOND" ->
+                        Decode.succeed Second
 
                     _ ->
                         Decode.fail ("Invalid MetricV2 type, " ++ string ++ " try re-running the @dillonkearns/elm-graphql CLI ")
@@ -48,8 +48,8 @@ toString enum =
         Meter ->
             "METER"
 
-        Minute ->
-            "MINUTE"
+        Second ->
+            "SECOND"
 
 
 {-| Convert from a String representation to an elm representation enum.
@@ -69,8 +69,8 @@ fromString enumString =
         "METER" ->
             Just Meter
 
-        "MINUTE" ->
-            Just Minute
+        "SECOND" ->
+            Just Second
 
         _ ->
             Nothing

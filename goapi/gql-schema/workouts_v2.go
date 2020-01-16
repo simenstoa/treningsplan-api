@@ -24,8 +24,8 @@ var (
 							"METER": &graphql.EnumValueConfig{
 								Value: "meter",
 							},
-							"MINUTE": &graphql.EnumValueConfig{
-								Value: "minute",
+							"SECOND": &graphql.EnumValueConfig{
+								Value: "second",
 							},
 						},
 					})),

@@ -20,3 +20,16 @@ type WorkoutPart struct {
 	Metric    string
 	Intensity Intensity
 }
+
+type Profile struct {
+	Id        string
+	FirstName string
+	LastName  string
+	Vdot      int
+}
+
+type Record struct {
+	Id string
+	Race string
+	Duration string
+}

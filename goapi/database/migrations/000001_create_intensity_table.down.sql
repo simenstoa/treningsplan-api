@@ -1,6 +1,0 @@
-BEGIN;
-
-DROP EXTENSION IF EXISTS "uuid-ossp";
-DROP TABLE IF EXISTS intensity;
-
-COMMIT;

@@ -17,6 +17,7 @@ import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Headers
 import List.Extra
+import Metrics.Distance as Distance exposing (Distance(..))
 import Metrics.Duration as Duration exposing (Duration(..))
 import Metrics.VDOT as VDOT exposing (PaceDescription, VDOT)
 import Page.Intensity exposing (Intensity, intensitySelection)
@@ -44,7 +45,7 @@ type alias Model =
 
 type Metric
     = Meter
-    | Minute
+    | Second
 
 
 type alias Workout =
@@ -92,8 +93,8 @@ workoutPartSelection =
                         Treningsplan.Enum.MetricV2.Meter ->
                             Meter
 
-                        Treningsplan.Enum.MetricV2.Minute ->
-                            Minute
+                        Treningsplan.Enum.MetricV2.Second ->
+                            Second
                 )
         )
         (Treningsplan.Object.WorkoutPart.intensity intensitySelection)
@@ -193,7 +194,7 @@ workoutDetailsView profile workout =
         , Element.wrappedRow [ width fill, spacing 40 ]
             [ Element.column [ height fill, alignTop, spacing 20 ]
                 [ Element.paragraph []
-                    [ text <| "For " ++ profile.firstname ++ " " ++ profile.surname ++ " with vdot " ++ String.fromInt profile.vdot ]
+                    [ text <| "For " ++ profile.firstname ++ " " ++ profile.lastname ++ " with vdot " ++ String.fromInt profile.vdot ]
                 , workoutDescription workout vdot totalDistance
                 ]
             , Element.el [ alignTop, width (fill |> minimum 200 |> maximum 800) ] <| Element.html <| graph totalDistance 2.5 <| second <| List.foldl (getPoints vdot) ( 0, [] ) workout.parts
@@ -225,7 +226,7 @@ workoutDescription workout vdot totalDistance =
 
 graph : Float -> Float -> List ( Float, Float ) -> Svg msg
 graph xMax yMax points =
-    LineChart.view xMax yMax points
+    LineChart.view 0 xMax 0 yMax points
 
 
 workoutPartsDescription : VDOT -> List WorkoutPart -> Element.Element msg
@@ -289,10 +290,10 @@ getStressForPart vdot part =
         distance =
             case part.metric of
                 Meter ->
-                    VDOT.meterToDistance part.distance
+                    VDOT.metersToDistance part.distance
 
-                Minute ->
-                    VDOT.minuteToDistance part.distance
+                Second ->
+                    VDOT.secondsToDistance part.distance
 
         duration =
             VDOT.meterFromDistanceForPace pace distance
@@ -309,10 +310,10 @@ getDistanceForPartInMeter vdot part =
         distance =
             case part.metric of
                 Meter ->
-                    VDOT.meterToDistance part.distance
+                    VDOT.metersToDistance part.distance
 
-                Minute ->
-                    VDOT.minuteToDistance part.distance
+                Second ->
+                    VDOT.secondsToDistance part.distance
     in
     VDOT.meterFromDistanceForPace pace distance
 
@@ -326,10 +327,10 @@ getDistanceForPartInSeconds vdot part =
         distance =
             case part.metric of
                 Meter ->
-                    VDOT.meterToDistance part.distance
+                    VDOT.metersToDistance part.distance
 
-                Minute ->
-                    VDOT.minuteToDistance part.distance
+                Second ->
+                    VDOT.secondsToDistance part.distance
     in
     VDOT.secondsFromDistanceForPace pace distance
 

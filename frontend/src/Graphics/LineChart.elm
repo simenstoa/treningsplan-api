@@ -27,60 +27,60 @@ padding =
     30
 
 
-xScale : Float -> ContinuousScale Float
-xScale max =
-    Scale.linear ( w - 2 * padding, 0 ) ( max, 0 )
+xScale : Float -> Float -> ContinuousScale Float
+xScale min max =
+    Scale.linear ( w - 2 * padding, 0 ) ( max, min )
 
 
-yScale : Float -> ContinuousScale Float
-yScale max =
-    Scale.linear ( h - 2 * padding, 0 ) ( 0, max )
+yScale : Float -> Float -> ContinuousScale Float
+yScale min max =
+    Scale.linear ( h - 2 * padding, 0 ) ( min, max )
 
 
-xAxis : Float -> List ( Float, Float ) -> Svg msg
-xAxis max model =
-    Axis.bottom [ Axis.tickCount (List.length model) ] <| xScale max
+xAxis : Float -> Float -> List ( Float, Float ) -> Svg msg
+xAxis min max model =
+    Axis.bottom [ Axis.tickCount (List.length model) ] <| xScale min max
 
 
-yAxis : Float -> Svg msg
-yAxis max =
-    Axis.left [ Axis.tickCount 5 ] <| yScale max
+yAxis : Float -> Float -> Svg msg
+yAxis min max =
+    Axis.left [ Axis.tickCount 5 ] <| yScale min max
 
 
-transformToLineData : Float -> Float -> ( Float, Float ) -> Maybe ( Float, Float )
-transformToLineData xMax yMax ( x, y ) =
-    Just ( Scale.convert (xScale xMax) x, Scale.convert (yScale yMax) y )
+transformToLineData : Float -> Float -> Float -> Float -> ( Float, Float ) -> Maybe ( Float, Float )
+transformToLineData xMin xMax yMin yMax ( x, y ) =
+    Just ( Scale.convert (xScale xMin xMax) x, Scale.convert (yScale yMin yMax) y )
 
 
-tranfromToAreaData : Float -> Float -> ( Float, Float ) -> Maybe ( ( Float, Float ), ( Float, Float ) )
-tranfromToAreaData xMax yMax ( x, y ) =
+tranfromToAreaData : Float -> Float -> Float -> Float -> ( Float, Float ) -> Maybe ( ( Float, Float ), ( Float, Float ) )
+tranfromToAreaData xMin xMax yMin yMax ( x, y ) =
     Just
-        ( ( Scale.convert (xScale xMax) x, Tuple.first (Scale.rangeExtent (yScale yMax)) )
-        , ( Scale.convert (xScale xMax) x, Scale.convert (yScale yMax) y )
+        ( ( Scale.convert (xScale xMin xMax) x, Tuple.first (Scale.rangeExtent (yScale yMin yMax)) )
+        , ( Scale.convert (xScale xMin xMax) x, Scale.convert (yScale yMin yMax) y )
         )
 
 
-line : Float -> Float -> List ( Float, Float ) -> Path
-line xMax yMax model =
-    List.map (transformToLineData xMax yMax) model
+line : Float -> Float -> Float -> Float -> List ( Float, Float ) -> Path
+line xMin xMax yMin yMax model =
+    List.map (transformToLineData xMin xMax yMin yMax) model
         |> Shape.line Shape.monotoneInXCurve
 
 
-area : Float -> Float -> List ( Float, Float ) -> Path
-area xMax yMax model =
-    List.map (tranfromToAreaData xMax yMax) model
+area : Float -> Float -> Float -> Float -> List ( Float, Float ) -> Path
+area xMin xMax yMin yMax model =
+    List.map (tranfromToAreaData xMin xMax yMin yMax) model
         |> Shape.area Shape.monotoneInXCurve
 
 
-view : Float -> Float -> List ( Float, Float ) -> Svg msg
-view xMax yMax model =
+view : Float -> Float -> Float -> Float -> List ( Float, Float ) -> Svg msg
+view xMin xMax yMin yMax model =
     svg [ viewBox 0 0 w h ]
         [ g [ transform [ Translate (padding - 1) (h - padding) ] ]
-            [ xAxis xMax model ]
+            [ xAxis xMin xMax model ]
         , g [ transform [ Translate (padding - 1) padding ] ]
-            [ yAxis yMax ]
+            [ yAxis yMin yMax ]
         , g [ transform [ Translate padding padding ], class [ "series" ] ]
-            [ Path.element (area xMax yMax model) [ strokeWidth 3, fill <| Fill <| Color.rgba 1 0 0 0.54 ]
-            , Path.element (line xMax yMax model) [ stroke (Color.rgb 1 0 0), strokeWidth 3, fill FillNone ]
+            [ Path.element (area xMin xMax yMin yMax model) [ strokeWidth 3, fill <| Fill <| Color.rgba 1 0 0 0.54 ]
+            , Path.element (line xMin xMax yMin yMax model) [ stroke (Color.rgb 1 0 0), strokeWidth 3, fill FillNone ]
             ]
         ]

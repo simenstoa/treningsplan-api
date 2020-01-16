@@ -33,7 +33,7 @@ type alias Model =
 type alias Profile =
     { id : String
     , firstname : String
-    , surname : String
+    , lastname : String
     , vdot : Int
     , records : List Record
     }
@@ -59,7 +59,7 @@ profileSelection =
     SelectionSet.map5 Profile
         Treningsplan.Object.Profile.id
         Treningsplan.Object.Profile.firstname
-        Treningsplan.Object.Profile.surname
+        Treningsplan.Object.Profile.lastname
         Treningsplan.Object.Profile.vdot
         (Treningsplan.Object.Profile.records recordSelection)
 
@@ -95,7 +95,7 @@ view model =
             RemoteData.Success data ->
                 case data of
                     Just profile ->
-                        profile.firstname ++ " " ++ profile.surname
+                        profile.firstname ++ " " ++ profile.lastname
 
                     Nothing ->
                         "Could not find profile"
@@ -148,7 +148,7 @@ profileView profile =
                     text <|
                         profile.firstname
                             ++ " "
-                            ++ profile.surname
+                            ++ profile.lastname
             , Element.el [ height <| fillPortion 1, width <| fillPortion 3, Element.inFront <| vdotView profile ] <|
                 Element.none
             ]

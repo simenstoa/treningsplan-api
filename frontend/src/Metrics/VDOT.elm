@@ -6,9 +6,9 @@ module Metrics.VDOT exposing
     , getVdot
     , intensityToString
     , meterFromDistanceForPace
-    , meterToDistance
-    , minuteToDistance
+    , metersToDistance
     , secondsFromDistanceForPace
+    , secondsToDistance
     , toIntensity
     , workoutPaceToString
     )
@@ -93,19 +93,19 @@ type alias RacePrediction =
     { race : Race, pace : Pace }
 
 
-type Distance
+type Length
     = Meter Int
-    | Minute Int
+    | Second Int
 
 
 type alias Race =
-    { name : String, distance : Distance }
+    { name : String, length : Length }
 
 
 defaultVdot : VDOT
 defaultVdot =
     { value = 57
-    , racePrediction = [ { race = { name = "10k", distance = Meter 10000 }, pace = SecPerKm 222 } ]
+    , racePrediction = [ { race = { name = "10k", length = Meter 10000 }, pace = SecPerKm 222 } ]
     , workoutPace =
         [ { intensity = Easy, pace = Between (SecPerKm 276) (SecPerKm 305) }
         , { intensity = Marathon, pace = Constant (SecPerKm 243) }
@@ -127,23 +127,23 @@ table =
     ]
 
 
-meterToDistance : Int -> Distance
-meterToDistance meter =
-    Meter meter
+metersToDistance : Int -> Length
+metersToDistance meters =
+    Meter meters
 
 
-minuteToDistance : Int -> Distance
-minuteToDistance minute =
-    Minute minute
+secondsToDistance : Int -> Length
+secondsToDistance seconds =
+    Second seconds
 
 
-meterFromDistanceForPace : PaceDescription -> Distance -> Float
+meterFromDistanceForPace : PaceDescription -> Length -> Float
 meterFromDistanceForPace pace distance =
     case distance of
         Meter meter ->
             toFloat meter
 
-        Minute minute ->
+        Second second ->
             let
                 secPerKm =
                     case pace of
@@ -154,15 +154,15 @@ meterFromDistanceForPace pace distance =
                             toFloat (min + max) / 2
 
                 seconds =
-                    toFloat minute * 60
+                    toFloat second
             in
             seconds / secPerKm
 
 
-secondsFromDistanceForPace : PaceDescription -> Distance -> Int
+secondsFromDistanceForPace : PaceDescription -> Length -> Int
 secondsFromDistanceForPace pace distance =
     case distance of
-        Meter meter ->
+        Meter meters ->
             let
                 secPerKm =
                     case pace of
@@ -172,10 +172,10 @@ secondsFromDistanceForPace pace distance =
                         Between (SecPerKm min) (SecPerKm max) ->
                             toFloat (min + max) / 2
             in
-            ceiling (toFloat meter / 1000 * secPerKm)
+            ceiling (toFloat meters / 1000 * secPerKm)
 
-        Minute minute ->
-            minute * 60
+        Second seconds ->
+            seconds
 
 
 getVdot : Int -> Maybe VDOT

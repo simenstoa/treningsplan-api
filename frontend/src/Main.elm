@@ -62,7 +62,7 @@ init _ url key =
             Navigation.urlToPage url
 
         userId =
-            "recfBcTSvqs8CyrCk"
+            "e64eb995-5238-4ca0-8abb-f392bef00e1a"
     in
     ( { overview = Overview.init
       , plan = PlanPage.init

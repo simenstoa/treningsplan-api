@@ -6,8 +6,6 @@ import (
 	"goapi/resolvables/days"
 	"goapi/resolvables/intensity-zones"
 	"goapi/resolvables/plans"
-	"goapi/resolvables/profiles"
-	"goapi/resolvables/records"
 	"goapi/resolvables/weeks"
 	workout_intensities "goapi/resolvables/workout-intensities"
 	"goapi/resolvables/workouts"
@@ -20,15 +18,13 @@ func InitSchema(
 	resolvableWeek weeks.Resolvable,
 	resolvablePlan plans.Resolvable,
 	resolvableWorkoutIntensities workout_intensities.Resolvable,
-	resolvableProfile profiles.Resolvable,
-	resolvableRecord records.Resolvable,
 	dbClient database.Client) (graphql.Schema, error) {
 	workoutType := workoutType(resolvableWorkoutIntensities)
 	dayType := dayType(resolvableWorkout, workoutType)
 	weekType := weekType(resolvableDay, dayType)
 	planType := planType(resolvableWeek, weekType)
 	recordType := recordType()
-	profileType := profileType(resolvableRecord, recordType)
+	profileType := profileType(dbClient, recordType)
 	workoutV2Type := workoutV2Type()
 
 	var queryType = graphql.NewObject(
@@ -40,8 +36,9 @@ func InitSchema(
 				"workout":        workoutField(resolvableWorkout, workoutType),
 				"plans":          plansField(resolvablePlan, planType),
 				"plan":           planField(resolvablePlan, planType),
-				"profile":        profileField(resolvableProfile, profileType),
-				"workoutV2s":      workoutV2sField(dbClient, workoutV2Type),
+				"profiles":       profilesField(dbClient, profileType),
+				"profile":        profileField(dbClient, profileType),
+				"workoutV2s":     workoutV2sField(dbClient, workoutV2Type),
 				"workoutV2":      workoutV2Field(dbClient, workoutV2Type),
 			},
 		})
