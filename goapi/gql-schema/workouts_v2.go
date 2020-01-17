@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"goapi/database"
 	"goapi/gql-common"
+	"goapi/models"
 )
 
 var (
@@ -36,7 +37,7 @@ var (
 			}})
 )
 
-func workoutV2Fields() graphql.Fields {
+func workoutV2Fields(dbClient database.Client, profileType *graphql.Object) graphql.Fields {
 	return graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -50,14 +51,20 @@ func workoutV2Fields() graphql.Fields {
 		"parts": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(partType))),
 		},
+		"createdBy": &graphql.Field{
+			Type: graphql.NewNonNull(profileType),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return dbClient.GetProfile(p.Context, p.Source.(models.Workout).CreatedBy)
+			},
+		},
 	}
 }
 
-func workoutV2Type() *graphql.Object {
+func workoutV2Type(dbClient database.Client, profileType *graphql.Object) *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name:   "WorkoutV2",
-			Fields: workoutV2Fields(),
+			Fields: workoutV2Fields(dbClient, profileType),
 		},
 	)
 }

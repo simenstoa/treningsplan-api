@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Authentication
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Element exposing (fill, height, px, width)
@@ -29,12 +30,13 @@ type alias Model =
     , workout : WorkoutPage.Model
     , profile : ProfilePage.Model
     , intensity : IntensityPage.Model
+    , auth : Authentication.Model
     , navigation : Navigation.Model
     }
 
 
-fetchDataForPage : Navigation.Page -> Cmd Msg
-fetchDataForPage page =
+fetchDataForPage : Navigation.Page -> Authentication.Model -> Cmd Msg
+fetchDataForPage page auth =
     case page of
         Index ->
             Cmd.map OverviewMsg <| Overview.fetchPlans
@@ -48,8 +50,8 @@ fetchDataForPage page =
         WorkoutsPage ->
             Cmd.map WorkoutsMsg <| WorkoutsPage.fetch
 
-        ProfilePage id ->
-            Cmd.map ProfileMsg <| ProfilePage.fetch id
+        ProfilePage ->
+            Cmd.map ProfileMsg <| ProfilePage.fetch (Maybe.withDefault "" auth.token)
 
         IntensityPage ->
             Cmd.map IntensityMsg <| IntensityPage.fetch
@@ -61,20 +63,20 @@ init _ url key =
         page =
             Navigation.urlToPage url
 
-        userId =
-            "e64eb995-5238-4ca0-8abb-f392bef00e1a"
+        auth =
+            Authentication.init url
     in
     ( { overview = Overview.init
       , plan = PlanPage.init
       , workout = WorkoutPage.init
       , workouts = WorkoutsPage.init
       , profile = ProfilePage.init
+      , auth = auth
       , intensity = IntensityPage.init
       , navigation = Navigation.init key page
       }
     , Cmd.batch
-        [ Cmd.map ProfileMsg <| ProfilePage.fetch userId
-        , fetchDataForPage page
+        [ fetchDataForPage page auth
         ]
     )
 
@@ -90,6 +92,7 @@ type Msg
     | WorkoutsMsg WorkoutsPage.Msg
     | ProfileMsg ProfilePage.Msg
     | IntensityMsg IntensityPage.Msg
+    | AuthenticationMsg Authentication.Msg
     | UrlChanged Page
     | LinkClicked Browser.UrlRequest
 
@@ -139,8 +142,15 @@ update msg model =
             in
             ( { model | intensity = intensityModel }, Cmd.map IntensityMsg intensityCmd )
 
+        AuthenticationMsg authMsg ->
+            let
+                ( authModel, authCmd ) =
+                    Authentication.update authMsg model.auth
+            in
+            ( { model | auth = authModel }, Cmd.map AuthenticationMsg authCmd )
+
         UrlChanged page ->
-            ( { model | navigation = { page = page, key = model.navigation.key } }, fetchDataForPage page )
+            ( { model | navigation = { page = page, key = model.navigation.key } }, fetchDataForPage page model.auth )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -163,7 +173,7 @@ createLayout : Model -> Element.Element Msg -> List (Html Msg)
 createLayout model page =
     [ Element.layout [ Element.Font.size 18, Fonts.body, Element.Background.image "%PUBLIC_URL%/asoggetti-GYr9A2CPMhY-unsplash.svg" ] <|
         Element.column [ width fill, height fill ] <|
-            [ Element.map ProfileMsg <| Navigation.view model.navigation model.profile.profile
+            [ Element.map AuthenticationMsg <| Navigation.view model.navigation model.auth.token
             , page
             , Element.el [ Element.Region.footer, height <| px 200 ] Element.none
             ]
@@ -194,7 +204,7 @@ view model =
         WorkoutPage _ ->
             let
                 { title, body } =
-                    WorkoutPage.view model.profile.profile model.workout
+                    WorkoutPage.view model.workout
             in
             { title = title
             , body = createLayout model <| Element.map WorkoutMsg body
@@ -209,7 +219,7 @@ view model =
             , body = createLayout model <| Element.map WorkoutsMsg body
             }
 
-        ProfilePage _ ->
+        ProfilePage ->
             let
                 { title, body } =
                     ProfilePage.view model.profile

@@ -5,7 +5,6 @@ import (
 	"goapi/appcontext/initctx"
 	"net/http"
 
-	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -17,7 +16,7 @@ func InitContext() mux.MiddlewareFunc {
 			defer cancel()
 
 			updatedReq := r.WithContext(ctx)
-			updatedReq = updatedReq.WithContext(appcontext.WithCorrelationId(updatedReq.Context(), uuid.Must(uuid.NewV4()).String()))
+			updatedReq = updatedReq.WithContext(appcontext.WithCorrelationId(updatedReq.Context(), appcontext.GenerateCorrelationId()))
 			updatedReq = updatedReq.WithContext(appcontext.WithPath(updatedReq.Context(), r.URL.Path))
 
 			handler.ServeHTTP(w, updatedReq)

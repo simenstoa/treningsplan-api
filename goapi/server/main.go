@@ -9,6 +9,7 @@ import (
 	"goapi/config"
 	"goapi/database"
 	gqlschema "goapi/gql-schema"
+	"goapi/jwktokenvalidator"
 	"goapi/logger"
 	"goapi/resolvables/days"
 	"goapi/resolvables/intensity-zones"
@@ -62,6 +63,13 @@ func main() {
 		}
 	}()
 
+	log.Info("setting up public key store")
+	publicKeyStore, err := jwktokenvalidator.NewPublicKeyStore(startupCtx)
+	if err != nil {
+		log.WithError(err).Panic("failed to setup public key store")
+	}
+	jwtTokenValidator := jwktokenvalidator.NewJwtTokenValidator(publicKeyStore)
+
 	resolvableIntensity := intensityzones.NewResolvable(airtableClient, databaseClient)
 	resolvableWorkout := workouts.NewResolvable(airtableClient)
 	resolvableDay := days.NewResolvable(airtableClient)
@@ -82,7 +90,7 @@ func main() {
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		AllowedHeaders:   []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept"},
+		AllowedHeaders:   []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept", "Authorization"},
 	})
 
 	h := handler.New(&handler.Config{
@@ -97,6 +105,7 @@ func main() {
 		c.Handler,
 		mw.TrackRequestStart(),
 		mw.InitContext(),
+		mw.Authentication(jwtTokenValidator, databaseClient),
 		mw.TrackRequestFinish(),
 	)
 

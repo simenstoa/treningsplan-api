@@ -1,4 +1,4 @@
-package database
+package models
 
 type Intensity struct {
 	Id          string
@@ -12,6 +12,7 @@ type Workout struct {
 	Name        string
 	Description string
 	Parts       []WorkoutPart
+	CreatedBy   string
 }
 
 type WorkoutPart struct {

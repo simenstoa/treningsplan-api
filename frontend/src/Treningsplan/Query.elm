@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Query exposing (PlanRequiredArguments, ProfileRequiredArguments, WorkoutRequiredArguments, WorkoutV2RequiredArguments, intensityZones, plan, plans, profile, profiles, workout, workoutV2, workoutV2s, workouts)
+module Treningsplan.Query exposing (PlanRequiredArguments, ProfileRequiredArguments, WorkoutRequiredArguments, WorkoutV2RequiredArguments, intensityZones, me, plan, plans, profile, profiles, workout, workoutV2, workoutV2s, workouts)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -23,6 +23,12 @@ import Treningsplan.Union
 intensityZones : SelectionSet decodesTo Treningsplan.Object.Intensity -> SelectionSet (List decodesTo) RootQuery
 intensityZones object_ =
     Object.selectionForCompositeField "intensityZones" [] object_ (identity >> Decode.list)
+
+
+{-| -}
+me : SelectionSet decodesTo Treningsplan.Object.Profile -> SelectionSet (Maybe decodesTo) RootQuery
+me object_ =
+    Object.selectionForCompositeField "me" [] object_ (identity >> Decode.nullable)
 
 
 type alias PlanRequiredArguments =

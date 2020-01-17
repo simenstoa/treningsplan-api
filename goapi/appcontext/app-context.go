@@ -2,8 +2,9 @@ package appcontext
 
 import (
 	"context"
-	"golang.org/x/text/language"
-	"strconv"
+	"errors"
+	"github.com/gofrs/uuid"
+	"goapi/models"
 	"time"
 )
 
@@ -13,63 +14,55 @@ const (
 	LoggerKey ContextKey = iota
 
 	CorrelationIdKey
-	SessionIdKey
-	CustomerIdKey
-	DeviceIdKey
-	HostAddressKey
 	PathKey
-	AppIdKey
-	PlatformKey
-	OsKey
-	VippsAppVersionKey
-
 	requestStartKey
-	languageKey
-
-	InvoiceIdKey
-	InvoiceToAccountKey
-	InvoiceHasKidKey
-	InvoiceHasMessageKey
-	InvoiceAmountKey
-	InvoiceScheduledDateKey
-	VippsInvoiceIdKey
-	StorageBlobPathKey
 	OperationKey
+	UserAuthenticatedKey
+	Auth0IdKey
+	ProfileKey
 )
+
+func WithProfile(ctx context.Context, profile models.Profile) context.Context {
+	return context.WithValue(ctx, ProfileKey, profile)
+}
+
+func Profile(ctx context.Context) (models.Profile, error) {
+	if profile, ok := ctx.Value(ProfileKey).(models.Profile); ok {
+		return profile, nil
+	}
+	return models.Profile{}, notFoundOnContextError("Profile")
+}
+
+func WithUserAuthenticated(ctx context.Context, authenticated bool) context.Context {
+	return context.WithValue(ctx, UserAuthenticatedKey, authenticated)
+}
+
+func UserAuthenticated(ctx context.Context) (bool, error) {
+	return getBoolContextValue(ctx, UserAuthenticatedKey, "UserAuthenticated")
+}
+
+func WithAuth0Id(ctx context.Context, auth0Id string) context.Context {
+	return context.WithValue(ctx, Auth0IdKey, auth0Id)
+}
+
+func Auth0Id(ctx context.Context) (string, error) {
+	return getContextValue(ctx, Auth0IdKey, "Auth0Id")
+}
 
 func WithCorrelationId(ctx context.Context, correlationId string) context.Context {
 	return context.WithValue(ctx, CorrelationIdKey, correlationId)
 }
 
-func CorrelationId(ctx context.Context) string {
-	if val, ok := ctx.Value(CorrelationIdKey).(string); ok {
-		return val
-	}
-	return ""
-}
-
-func WithDeviceId(ctx context.Context, deviceId string) context.Context {
-	return context.WithValue(ctx, DeviceIdKey, deviceId)
+func CorrelationId(ctx context.Context) (string, error) {
+	return getContextValue(ctx, CorrelationIdKey, "CorrelationId")
 }
 
 func WithPath(ctx context.Context, path string) context.Context {
 	return context.WithValue(ctx, PathKey, path)
 }
 
-func WithHostAddress(ctx context.Context, hostAddress string) context.Context {
-	return context.WithValue(ctx, HostAddressKey, hostAddress)
-}
-
-func WithSessionId(ctx context.Context, sessionId string) context.Context {
-	return context.WithValue(ctx, SessionIdKey, sessionId)
-}
-
 func WithRequestStart(ctx context.Context, time time.Time) context.Context {
 	return context.WithValue(ctx, requestStartKey, time)
-}
-
-func WithAppId(ctx context.Context, appId string) context.Context {
-	return context.WithValue(ctx, AppIdKey, appId)
 }
 
 func RequestStart(ctx context.Context) time.Time {
@@ -79,85 +72,28 @@ func RequestStart(ctx context.Context) time.Time {
 	return time.Unix(0, 0)
 }
 
-func WithLanguage(ctx context.Context, lang language.Tag) context.Context {
-	return context.WithValue(ctx, languageKey, lang)
-}
-
-func Language(ctx context.Context) language.Tag {
-	if val, ok := ctx.Value(languageKey).(language.Tag); ok {
-		return val
-	}
-	return language.Tag{}
-}
-
-func WithCustomerId(ctx context.Context, customerId string) context.Context {
-	return context.WithValue(ctx, CustomerIdKey, customerId)
-}
-
-func WithPlatform(ctx context.Context, platform string) context.Context {
-	return context.WithValue(ctx, PlatformKey, platform)
-}
-
-func Platform(ctx context.Context) string {
-	if val, ok := ctx.Value(PlatformKey).(string); ok {
-		return val
-	}
-	return ""
-}
-
-func WithOs(ctx context.Context, phoneOs string) context.Context {
-	return context.WithValue(ctx, OsKey, phoneOs)
-}
-
-func WithVippsAppVersion(ctx context.Context, vippsAppVersion string) context.Context {
-	return context.WithValue(ctx, VippsAppVersionKey, vippsAppVersion)
-}
-
-func VippsAppVersion(ctx context.Context) string {
-	if val, ok := ctx.Value(VippsAppVersionKey).(string); ok {
-		return val
-	}
-	return ""
-}
-
-func CustomerId(ctx context.Context) string {
-	if ctx == nil {
-		return ""
-	}
-	if val, ok := ctx.Value(CustomerIdKey).(string); ok {
-		return val
-	}
-	return ""
-}
-
-func WithInvoice(ctx context.Context, id, toAccount string, hasKid, hasMessage bool, amount int32, scheduledDate time.Time) context.Context {
-	ctx = WithInvoiceId(ctx, id)
-	m := map[ContextKey]string{
-		InvoiceToAccountKey:     toAccount,
-		InvoiceHasKidKey:        strconv.FormatBool(hasKid),
-		InvoiceHasMessageKey:    strconv.FormatBool(hasMessage),
-		InvoiceAmountKey:        strconv.FormatInt(int64(amount), 10),
-		InvoiceScheduledDateKey: scheduledDate.String(),
-	}
-	for key, val := range m {
-		ctx = context.WithValue(ctx, key, val)
-	}
-
-	return ctx
-}
-
-func WithInvoiceId(ctx context.Context, invoiceId string) context.Context {
-	return context.WithValue(ctx, InvoiceIdKey, invoiceId)
-}
-
-func WithVippsInvoiceId(ctx context.Context, vippsInvoiceId string) context.Context {
-	return context.WithValue(ctx, VippsInvoiceIdKey, vippsInvoiceId)
-}
-
-func WithStorageBlobPath(ctx context.Context, storageBlobPath string) context.Context {
-	return context.WithValue(ctx, StorageBlobPathKey, storageBlobPath)
-}
-
 func WithOperation(ctx context.Context, op operation) context.Context {
 	return context.WithValue(ctx, OperationKey, string(op))
+}
+
+func GenerateCorrelationId() string {
+	return uuid.Must(uuid.NewV4()).String()
+}
+
+func getContextValue(ctx context.Context, key ContextKey, keyName string) (string, error) {
+	if val, ok := ctx.Value(key).(string); ok {
+		return val, nil
+	}
+	return "", notFoundOnContextError(keyName)
+}
+
+func getBoolContextValue(ctx context.Context, key ContextKey, keyName string) (bool, error) {
+	if val, ok := ctx.Value(key).(bool); ok {
+		return val, nil
+	}
+	return false, notFoundOnContextError(keyName)
+}
+
+func notFoundOnContextError(keyName string) error {
+	return errors.New(keyName + " not found on context")
 }

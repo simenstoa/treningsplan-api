@@ -17,7 +17,6 @@ import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Headers
 import List.Extra
-import Metrics.Distance as Distance exposing (Distance(..))
 import Metrics.Duration as Duration exposing (Duration(..))
 import Metrics.VDOT as VDOT exposing (PaceDescription, VDOT)
 import Page.Intensity exposing (Intensity, intensitySelection)
@@ -53,6 +52,7 @@ type alias Workout =
     , name : String
     , description : Maybe String
     , parts : List WorkoutPart
+    , createdBy : ProfilePage.Profile
     }
 
 
@@ -74,11 +74,12 @@ init =
 
 workoutSelection : SelectionSet Workout Treningsplan.Object.WorkoutV2
 workoutSelection =
-    SelectionSet.map4 Workout
+    SelectionSet.map5 Workout
         Treningsplan.Object.WorkoutV2.id
         Treningsplan.Object.WorkoutV2.name
         Treningsplan.Object.WorkoutV2.description
         (Treningsplan.Object.WorkoutV2.parts workoutPartSelection)
+        (Treningsplan.Object.WorkoutV2.createdBy ProfilePage.profileSelection)
 
 
 workoutPartSelection : SelectionSet WorkoutPart Treningsplan.Object.WorkoutPart
@@ -114,7 +115,7 @@ update msg model =
             ( { model | workout = workout }, Cmd.none )
 
 
-view profile model =
+view model =
     { title =
         case model.workout of
             RemoteData.Success data ->
@@ -138,7 +139,7 @@ view profile model =
             RemoteData.Success workout ->
                 case workout of
                     Just w ->
-                        workoutView profile w
+                        workoutView w
 
                     Nothing ->
                         text "The workout does not exist."
@@ -154,35 +155,21 @@ view profile model =
     }
 
 
-workoutView : ProfilePage.Result -> Workout -> Element.Element Msg
-workoutView profile workout =
+workoutView : Workout -> Element.Element Msg
+workoutView workout =
     Element.column
         [ height fill, width fill, padding 20 ]
         [ Headers.mainHeader workout.name
-        , Element.el [ padding 10, width fill, spacing 20 ] <|
-            case profile of
-                RemoteData.Success data ->
-                    case data of
-                        Just p ->
-                            workoutDetailsView p workout
-
-                        Nothing ->
-                            Element.paragraph [ centerX, centerY ] [ text "Profile is needed to see workout details." ]
-
-                RemoteData.Loading ->
-                    Element.paragraph [ centerX, centerY ] [ text "Loading profile..." ]
-
-                RemoteData.Failure _ ->
-                    Element.paragraph [ centerX, centerY ] [ text "Error while fetching profile. A Profile is needed to see workout details." ]
-
-                RemoteData.NotAsked ->
-                    Element.paragraph [ centerX, centerY ] [ text "Loading profile..." ]
+        , Element.el [ padding 10, width fill, spacing 20 ] <| workoutDetailsView workout
         ]
 
 
-workoutDetailsView : Profile -> Workout -> Element.Element Msg
-workoutDetailsView profile workout =
+workoutDetailsView : Workout -> Element.Element Msg
+workoutDetailsView workout =
     let
+        profile =
+            workout.createdBy
+
         vdot =
             Maybe.withDefault VDOT.defaultVdot <| VDOT.getVdot profile.vdot
 

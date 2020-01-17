@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Treningsplan.Object.WorkoutV2 exposing (description, id, name, parts)
+module Treningsplan.Object.WorkoutV2 exposing (createdBy, description, id, name, parts)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -17,6 +17,12 @@ import Treningsplan.Object
 import Treningsplan.Scalar
 import Treningsplan.ScalarCodecs
 import Treningsplan.Union
+
+
+{-| -}
+createdBy : SelectionSet decodesTo Treningsplan.Object.Profile -> SelectionSet decodesTo Treningsplan.Object.WorkoutV2
+createdBy object_ =
+    Object.selectionForCompositeField "createdBy" [] object_ identity
 
 
 {-| -}

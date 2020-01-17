@@ -21,8 +21,7 @@
             "gampleman/elm-visualization": "2.0.1",
             "krisajenkins/remotedata": "6.0.1",
             "mdgriffith/elm-ui": "1.1.0",
-            "myrho/elm-round": "1.0.4",
-            "terezka/line-charts": "2.0.0"
+            "myrho/elm-round": "1.0.4"
         },
         "indirect": {
             "Skinney/murmur3": "2.0.8",

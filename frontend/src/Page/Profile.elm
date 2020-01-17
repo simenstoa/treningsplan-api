@@ -22,7 +22,6 @@ import Treningsplan.Query
 
 type Msg
     = Fetched Result
-    | LogIn String
 
 
 type alias Model =
@@ -50,6 +49,7 @@ type alias Result =
     RemoteData (Graphql.Http.Error (Maybe Profile)) (Maybe Profile)
 
 
+init : Model
 init =
     { profile = RemoteData.NotAsked }
 
@@ -73,9 +73,10 @@ recordSelection =
 
 
 fetch : String -> Cmd Msg
-fetch id =
-    Treningsplan.Query.profile (Treningsplan.Query.ProfileRequiredArguments id) profileSelection
+fetch token =
+    Treningsplan.Query.me profileSelection
         |> Graphql.Http.queryRequest globalConfig.graphQLUrl
+        |> Graphql.Http.withHeader "Authorization" ("Bearer " ++ token)
         |> Graphql.Http.send (RemoteData.fromResult >> Fetched)
 
 
@@ -84,9 +85,6 @@ update msg model =
     case msg of
         Fetched profile ->
             ( { model | profile = profile }, Cmd.none )
-
-        LogIn id ->
-            ( model, fetch id )
 
 
 view model =

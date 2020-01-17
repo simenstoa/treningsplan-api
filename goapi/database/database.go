@@ -10,17 +10,19 @@ import (
 	_ "github.com/lib/pq"
 	"goapi/config"
 	"goapi/logger"
+	"goapi/models"
 	"sort"
 )
 
 type Client interface {
 	Close() error
-	GetIntensities(ctx context.Context) ([]Intensity, error)
-	GetWorkouts(ctx context.Context) ([]Workout, error)
-	GetWorkout(ctx context.Context, id string) (Workout, error)
-	GetProfiles(ctx context.Context) ([]Profile, error)
-	GetProfile(ctx context.Context, id string) (Profile, error)
-	GetRecords(ctx context.Context, profileId string) ([]Record, error)
+	GetIntensities(ctx context.Context) ([]models.Intensity, error)
+	GetWorkouts(ctx context.Context) ([]models.Workout, error)
+	GetWorkout(ctx context.Context, id string) (models.Workout, error)
+	GetProfiles(ctx context.Context) ([]models.Profile, error)
+	GetProfile(ctx context.Context, id string) (models.Profile, error)
+	GetProfileByAuth0Id(ctx context.Context, auth0Id string) (models.Profile, error)
+	GetRecords(ctx context.Context, profileId string) ([]models.Record, error)
 }
 
 type client struct {
@@ -73,7 +75,7 @@ func (c *client) Close() error {
 	return c.db.Close()
 }
 
-func (c *client) GetIntensities(ctx context.Context) ([]Intensity, error) {
+func (c *client) GetIntensities(ctx context.Context) ([]models.Intensity, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement := `SELECT intensity_uid, name, description, coefficient FROM Intensity;`
@@ -81,7 +83,7 @@ func (c *client) GetIntensities(ctx context.Context) ([]Intensity, error) {
 	rows, err := c.db.Query(sqlStatement)
 	if err != nil {
 		log.WithError(err).Error("Error querying db")
-		return []Intensity{}, err
+		return []models.Intensity{}, err
 	}
 	defer func() {
 		err := rows.Close()
@@ -90,13 +92,13 @@ func (c *client) GetIntensities(ctx context.Context) ([]Intensity, error) {
 		}
 	}()
 
-	var intensities []Intensity
+	var intensities []models.Intensity
 	for rows.Next() {
-		var intensity Intensity
+		var intensity models.Intensity
 		err = rows.Scan(&intensity.Id, &intensity.Name, &intensity.Description, &intensity.Coefficient)
 		if err != nil {
 			log.WithError(err).Error("Error while parsing db row")
-			return []Intensity{}, err
+			return []models.Intensity{}, err
 		}
 		intensities = append(intensities, intensity)
 	}
@@ -104,13 +106,13 @@ func (c *client) GetIntensities(ctx context.Context) ([]Intensity, error) {
 	err = rows.Err()
 	if err != nil {
 		log.WithError(err).Error("Error while parsing db rows")
-		return []Intensity{}, err
+		return []models.Intensity{}, err
 	}
 
 	return intensities, nil
 }
 
-func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
+func (c *client) GetWorkouts(ctx context.Context) ([]models.Workout, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement :=
@@ -125,7 +127,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 	rows, err := c.db.QueryContext(ctx, sqlStatement)
 	if err != nil {
 		log.WithError(err).Error("Error querying db")
-		return []Workout{}, err
+		return []models.Workout{}, err
 	}
 	defer func() {
 		err := rows.Close()
@@ -134,11 +136,11 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 		}
 	}()
 
-	workouts := make(map[string]Workout)
+	workouts := make(map[string]models.Workout)
 	for rows.Next() {
-		var workout Workout
-		var part WorkoutPart
-		var intensity Intensity
+		var workout models.Workout
+		var part models.WorkoutPart
+		var intensity models.Intensity
 		err = rows.Scan(
 			&workout.Id, &workout.Name, &workout.Description,
 			&part.Order, &part.Distance, &part.Metric,
@@ -146,7 +148,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 		)
 		if err != nil {
 			log.WithError(err).Error("Error while parsing db row")
-			return []Workout{}, err
+			return []models.Workout{}, err
 		}
 
 		part.Intensity = intensity
@@ -162,10 +164,10 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 	err = rows.Err()
 	if err != nil {
 		log.WithError(err).Error("Error while parsing db rows")
-		return []Workout{}, err
+		return []models.Workout{}, err
 	}
 
-	var workoutList []Workout
+	var workoutList []models.Workout
 	for _, workout := range workouts {
 		sort.Slice(workout.Parts, func(i, j int) bool {
 			return workout.Parts[i].Order < workout.Parts[j].Order
@@ -176,12 +178,12 @@ func (c *client) GetWorkouts(ctx context.Context) ([]Workout, error) {
 	return workoutList, nil
 }
 
-func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
+func (c *client) GetWorkout(ctx context.Context, id string) (models.Workout, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement :=
 		`SELECT 
-       			w.workout_uid, w.name, w.description,
+       			w.workout_uid, w.name, w.description, w.profile_uid,
        			wp."order", wp.distance, wp.metric,
        			i.intensity_uid, i.name, i.description, i.coefficient 
 				FROM workout AS w 
@@ -192,7 +194,7 @@ func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
 	rows, err := c.db.QueryContext(ctx, sqlStatement, id)
 	if err != nil {
 		log.WithError(err).Error("Error querying db")
-		return Workout{}, err
+		return models.Workout{}, err
 	}
 	defer func() {
 		err := rows.Close()
@@ -201,18 +203,18 @@ func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
 		}
 	}()
 
-	var workout Workout
+	var workout models.Workout
 	for rows.Next() {
-		var part WorkoutPart
-		var intensity Intensity
+		var part models.WorkoutPart
+		var intensity models.Intensity
 		err = rows.Scan(
-			&workout.Id, &workout.Name, &workout.Description,
+			&workout.Id, &workout.Name, &workout.Description, &workout.CreatedBy,
 			&part.Order, &part.Distance, &part.Metric,
 			&intensity.Id, &intensity.Name, &intensity.Description, &intensity.Coefficient,
 		)
 		if err != nil {
 			log.WithError(err).Error("Error while parsing db row")
-			return Workout{}, err
+			return models.Workout{}, err
 		}
 
 		part.Intensity = intensity
@@ -222,7 +224,7 @@ func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
 	err = rows.Err()
 	if err != nil {
 		log.WithError(err).Error("Error while parsing db rows")
-		return Workout{}, err
+		return models.Workout{}, err
 	}
 
 	sort.Slice(workout.Parts, func(i, j int) bool {
@@ -232,7 +234,7 @@ func (c *client) GetWorkout(ctx context.Context, id string) (Workout, error) {
 	return workout, nil
 }
 
-func (c *client) GetProfiles(ctx context.Context) ([]Profile, error) {
+func (c *client) GetProfiles(ctx context.Context) ([]models.Profile, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement := `SELECT profile_uid, first_name, last_name, vdot FROM profile;`
@@ -240,7 +242,7 @@ func (c *client) GetProfiles(ctx context.Context) ([]Profile, error) {
 	rows, err := c.db.Query(sqlStatement)
 	if err != nil {
 		log.WithError(err).Error("Error querying db")
-		return []Profile{}, err
+		return []models.Profile{}, err
 	}
 	defer func() {
 		err := rows.Close()
@@ -249,13 +251,13 @@ func (c *client) GetProfiles(ctx context.Context) ([]Profile, error) {
 		}
 	}()
 
-	var profiles []Profile
+	var profiles []models.Profile
 	for rows.Next() {
-		var profile Profile
+		var profile models.Profile
 		err = rows.Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Vdot)
 		if err != nil {
 			log.WithError(err).Error("Error while parsing db row")
-			return []Profile{}, err
+			return []models.Profile{}, err
 		}
 		profiles = append(profiles, profile)
 	}
@@ -263,35 +265,57 @@ func (c *client) GetProfiles(ctx context.Context) ([]Profile, error) {
 	err = rows.Err()
 	if err != nil {
 		log.WithError(err).Error("Error while parsing db rows")
-		return []Profile{}, err
+		return []models.Profile{}, err
 	}
 
 	return profiles, nil
 }
 
-func (c *client) GetProfile(ctx context.Context, id string) (Profile, error) {
+func (c *client) GetProfile(ctx context.Context, id string) (models.Profile, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement :=
 		`SELECT profile_uid, first_name, last_name, vdot FROM profile WHERE profile_uid = $1;`
 
 	row := c.db.QueryRowContext(ctx, sqlStatement, id)
-	var profile Profile
+	var profile models.Profile
 	err := row.Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Vdot)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			notFoundError := newEntityNotFoundError(err)
 			log.WithError(notFoundError).Error("Profile not found")
-			return Profile{}, notFoundError
+			return models.Profile{}, notFoundError
 		}
 		log.WithError(err).Error("Error while parsing db row")
-		return Profile{}, err
+		return models.Profile{}, err
 	}
 
 	return profile, nil
 }
 
-func (c *client) GetRecords(ctx context.Context, profileId string) ([]Record, error) {
+func (c *client) GetProfileByAuth0Id(ctx context.Context, auth0Id string) (models.Profile, error) {
+	log := logger.FromContext(ctx)
+
+	sqlStatement :=
+		`SELECT profile_uid, first_name, last_name, vdot FROM profile WHERE auth0_id = $1;`
+
+	row := c.db.QueryRowContext(ctx, sqlStatement, auth0Id)
+	var profile models.Profile
+	err := row.Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Vdot)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			notFoundError := newEntityNotFoundError(err)
+			log.WithError(notFoundError).Error("Profile not found")
+			return models.Profile{}, notFoundError
+		}
+		log.WithError(err).Error("Error while parsing db row")
+		return models.Profile{}, err
+	}
+
+	return profile, nil
+}
+
+func (c *client) GetRecords(ctx context.Context, profileId string) ([]models.Record, error) {
 	log := logger.FromContext(ctx)
 
 	sqlStatement := `SELECT record_uid, race, duration FROM record WHERE profile_uid=$1;`
@@ -299,7 +323,7 @@ func (c *client) GetRecords(ctx context.Context, profileId string) ([]Record, er
 	rows, err := c.db.Query(sqlStatement, profileId)
 	if err != nil {
 		log.WithError(err).Error("Error querying db")
-		return []Record{}, err
+		return []models.Record{}, err
 	}
 	defer func() {
 		err := rows.Close()
@@ -308,13 +332,13 @@ func (c *client) GetRecords(ctx context.Context, profileId string) ([]Record, er
 		}
 	}()
 
-	var records []Record
+	var records []models.Record
 	for rows.Next() {
-		var record Record
+		var record models.Record
 		err = rows.Scan(&record.Id, &record.Race, &record.Duration)
 		if err != nil {
 			log.WithError(err).Error("Error while parsing db row")
-			return []Record{}, err
+			return []models.Record{}, err
 		}
 		records = append(records, record)
 	}
@@ -322,7 +346,7 @@ func (c *client) GetRecords(ctx context.Context, profileId string) ([]Record, er
 	err = rows.Err()
 	if err != nil {
 		log.WithError(err).Error("Error while parsing db rows")
-		return []Record{}, err
+		return []models.Record{}, err
 	}
 
 	return records, nil

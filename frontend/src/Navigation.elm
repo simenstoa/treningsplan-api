@@ -1,14 +1,13 @@
 module Navigation exposing (Model, Page(..), init, urlParser, urlToPage, view)
 
+import Authentication
 import Browser.Navigation as Nav
 import Element exposing (alignRight, mouseOver, text)
 import Element.Background
 import Element.Font
 import Element.Input
 import Element.Region
-import Page.Profile as Profile exposing (Profile)
 import Pallette
-import RemoteData
 import Url exposing (Url)
 import Url.Parser as Url exposing ((</>), Parser)
 
@@ -18,7 +17,7 @@ type Page
     | PlanPage String
     | WorkoutPage String
     | WorkoutsPage
-    | ProfilePage String
+    | ProfilePage
     | IntensityPage
 
 
@@ -40,51 +39,41 @@ init key page =
     { key = key, page = page }
 
 
-view : Model -> Profile.Result -> Element.Element Profile.Msg
-view model profile =
+view : Model -> Maybe String -> Element.Element Authentication.Msg
+view model token =
     Element.row [ Element.Region.navigation, alignRight ]
         [ link model.page Plans { url = "/", label = Element.text "Plans" }
         , link model.page Workouts { url = "/workouts", label = Element.text "Workouts" }
         , link model.page Intensity { url = "/intensity", label = Element.text "Intensity" }
-        , profileTab model profile
+        , profileTab model token
         ]
 
 
-profileTab : Model -> Profile.Result -> Element.Element Profile.Msg
-profileTab model result =
-    case result of
-        RemoteData.Success profile ->
-            case profile of
-                Just p ->
-                    loggedInView model p
+profileTab : Model -> Maybe String -> Element.Element Authentication.Msg
+profileTab model token =
+    case token of
+        Just _ ->
+            --check expiry?
+            loggedInView model
 
-                Nothing ->
-                    loginButton
-
-        RemoteData.Loading ->
-            text "Logging in..."
-
-        RemoteData.Failure _ ->
-            loginButton
-
-        RemoteData.NotAsked ->
+        Nothing ->
             loginButton
 
 
-loginButton : Element.Element Profile.Msg
+loginButton : Element.Element Authentication.Msg
 loginButton =
     Element.Input.button
         [ Element.Background.color Pallette.sunray
         , Element.padding 20
         ]
-        { onPress = Just <| Profile.LogIn "recfBcTSvqs8CyrCk"
+        { onPress = Just <| Authentication.SignInRequested
         , label = text "Login"
         }
 
 
-loggedInView : Model -> Profile -> Element.Element Profile.Msg
-loggedInView model profile =
-    link model.page Profile { url = "/profiles/" ++ profile.id, label = Element.text profile.firstname }
+loggedInView : Model -> Element.Element msg
+loggedInView model =
+    link model.page Profile { url = "/profile", label = Element.text "Profile" }
 
 
 link : Page -> NavigationTab -> { url : String, label : Element.Element msg } -> Element.Element msg
@@ -134,7 +123,7 @@ pageToNavigationTab page =
         PlanPage _ ->
             Just Plans
 
-        ProfilePage _ ->
+        ProfilePage ->
             Just Profile
 
         IntensityPage ->
@@ -161,6 +150,6 @@ urlParser =
         , Url.map PlanPage (Url.s "plans" </> Url.string)
         , Url.map WorkoutPage (Url.s "workouts" </> Url.string)
         , Url.map WorkoutsPage (Url.s "workouts")
-        , Url.map ProfilePage (Url.s "profiles" </> Url.string)
+        , Url.map ProfilePage (Url.s "profile")
         , Url.map IntensityPage (Url.s "intensity")
         ]

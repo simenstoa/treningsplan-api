@@ -11,3 +11,10 @@ func LogDuration(duration time.Duration) logrus.Fields {
 		durationKey: strconv.FormatInt(duration.Nanoseconds(), 10),
 	}
 }
+
+func LogProblem(problemType string, problemStatusCode int) logrus.Fields {
+	return logrus.Fields{
+		problemTypeKey: problemType,
+		statusCode:     problemStatusCode,
+	}
+}

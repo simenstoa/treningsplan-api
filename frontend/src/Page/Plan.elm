@@ -10,23 +10,6 @@ import Element.Region exposing (heading)
 import Graphics.LineChart
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import LineChart
-import LineChart.Area as Area
-import LineChart.Axis as Axis exposing (Config)
-import LineChart.Axis.Intersection as Intersection
-import LineChart.Axis.Line as AxisLine
-import LineChart.Axis.Range as Range
-import LineChart.Axis.Ticks as Ticks
-import LineChart.Axis.Title as Title
-import LineChart.Colors as Colors
-import LineChart.Container as Container
-import LineChart.Dots as Dots
-import LineChart.Events as Events
-import LineChart.Grid as Grid
-import LineChart.Interpolation as Interpolation
-import LineChart.Junk as Junk
-import LineChart.Legends as Legends
-import LineChart.Line as Line
 import Pallette
 import RemoteData exposing (RemoteData)
 import Svg exposing (Svg)
@@ -40,12 +23,10 @@ import Treningsplan.Query
 
 type Msg
     = Fetched Result
-    | HoverWeek (Maybe WeekGraphPoint)
 
 
 type alias Model =
     { plan : Result
-    , hoveredWeek : Maybe WeekGraphPoint
     }
 
 
@@ -90,8 +71,9 @@ type alias Result =
     RemoteData (Graphql.Http.Error (Maybe Plan)) (Maybe Plan)
 
 
+init : Model
 init =
-    { plan = RemoteData.NotAsked, hoveredWeek = Nothing }
+    { plan = RemoteData.NotAsked }
 
 
 fetch : String -> Cmd Msg
@@ -141,9 +123,6 @@ update msg model =
         Fetched plan ->
             ( { model | plan = plan }, Cmd.none )
 
-        HoverWeek week ->
-            ( { model | hoveredWeek = week }, Cmd.none )
-
 
 view : Model -> Document Msg
 view model =
@@ -172,7 +151,7 @@ view model =
             <|
                 [ case model.plan of
                     RemoteData.Success data ->
-                        planView model.hoveredWeek data
+                        planView data
 
                     RemoteData.Loading ->
                         text "Loading plan..."
@@ -187,13 +166,13 @@ view model =
     }
 
 
-planView : Maybe WeekGraphPoint -> Maybe Plan -> Element.Element Msg
-planView hoveredWeek plan =
+planView : Maybe Plan -> Element.Element Msg
+planView plan =
     case plan of
         Just p ->
             Element.column [ spacing 10, Element.alignTop ]
                 [ el [ heading 1, Font.size 25 ] <| text p.name
-                , el [ width fill ] <| Element.html <| distanceGraph hoveredWeek p.weeks
+                , el [ width fill ] <| Element.html <| distanceGraph p.weeks
                 , Element.column [ spacing 10 ] <| List.map weekView <| List.sortBy (\w -> w.order) p.weeks
                 ]
 
@@ -201,74 +180,8 @@ planView hoveredWeek plan =
             text "Could not find the plan :("
 
 
-containerConfig : Container.Config Msg
-containerConfig =
-    Container.custom
-        { attributesHtml = []
-        , attributesSvg = []
-        , size = Container.relative
-        , margin = Container.Margin 30 100 30 70
-        , id = "line-chart-1"
-        }
-
-
-customDotsConfig : Maybe WeekGraphPoint -> Dots.Config WeekGraphPoint
-customDotsConfig maybeHovered =
-    let
-        styleLegend _ =
-            Dots.disconnected 10 2
-
-        styleIndividual datum =
-            if Just datum == maybeHovered then
-                Dots.empty 8 2
-
-            else
-                Dots.disconnected 10 2
-    in
-    Dots.customAny
-        { legend = styleLegend
-        , individual = styleIndividual
-        }
-
-
-chart : Maybe WeekGraphPoint -> List { id : String, week : Float, distance : Float } -> Svg.Svg Msg
-chart hoveredWeek weeks =
-    LineChart.viewCustom
-        { y =
-            Axis.custom
-                { title = Title.default "Km"
-                , variable = Just << .distance
-                , pixels = 300
-                , range = Range.window 0 <| (Maybe.withDefault 100 <| List.maximum <| List.map .distance weeks) + 10
-                , axisLine = AxisLine.full Colors.black
-                , ticks = Ticks.default
-                }
-        , x =
-            Axis.custom
-                { title = Title.default "Weeks"
-                , variable = Just << .week
-                , pixels = 1000
-                , range = Range.padded 20 20
-                , axisLine = AxisLine.full Colors.black
-                , ticks = Ticks.int <| List.length weeks
-                }
-        , container = containerConfig
-        , interpolation = Interpolation.monotone
-        , intersection = Intersection.at 1 0
-        , legends = Legends.none
-        , events = Events.hoverOne HoverWeek
-        , junk = Junk.default
-        , grid = Grid.default
-        , area = Area.normal 0.5
-        , line = Line.default
-        , dots = customDotsConfig hoveredWeek
-        }
-        [ LineChart.line Colors.pink Dots.circle "" weeks
-        ]
-
-
-distanceGraph : Maybe WeekGraphPoint -> List Week -> Svg Msg
-distanceGraph hoveredWeek weeks =
+distanceGraph : List Week -> Svg Msg
+distanceGraph weeks =
     let
         points =
             weeks
