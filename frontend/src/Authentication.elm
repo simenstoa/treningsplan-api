@@ -50,7 +50,7 @@ update msg model =
     case msg of
         SignInRequested ->
             ( model
-            , "https://treningsplan.eu.auth0.com/authorize?client_id=uUux3mJmyrEWLGcWoduN16KCaG6CwC4M&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=id_token&scope=openid%20profile&nonce=shouldchange" |> Navigation.load
+            , "https://treningsplan.eu.auth0.com/authorize?client_id=uUux3mJmyrEWLGcWoduN16KCaG6CwC4M&redirect_uri=https%3A%2F%2Ftreningsplan.s33.no&response_type=id_token&scope=openid%20profile&nonce=shouldchange" |> Navigation.load
             )
 
         SignOutRequested ->
