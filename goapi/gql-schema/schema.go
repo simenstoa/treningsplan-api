@@ -28,7 +28,7 @@ func InitSchema(
 	profileType := profileType(dbClient, recordType)
 	workoutV2Type := workoutV2Type(dbClient, profileType)
 
-	var queryType = graphql.NewObject(
+	rootQuery := graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "Query",
 			Fields: graphql.Fields{
@@ -45,9 +45,18 @@ func InitSchema(
 			},
 		})
 
+	rootMutation := graphql.NewObject(graphql.ObjectConfig{
+		Name: "RootMutation",
+		Fields: graphql.Fields{
+			"createWorkout": createWorkoutV2Mutation(dbClient, workoutV2Type),
+			"addWorkoutPart": addWorkoutPartMutation(dbClient, workoutV2Type),
+			},
+	})
+
 	return graphql.NewSchema(
 		graphql.SchemaConfig{
-			Query: queryType,
+			Query:    rootQuery,
+			Mutation: rootMutation,
 		},
 	)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -67,4 +68,8 @@ func NewClient(ctx context.Context, cfg config.Config) (Client, error) {
 
 func (c *client) Close() error {
 	return c.db.Close()
+}
+
+func createNewId() string {
+	return uuid.Must(uuid.NewV4()).String()
 }

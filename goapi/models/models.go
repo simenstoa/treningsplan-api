@@ -11,7 +11,6 @@ type Workout struct {
 	Id          string
 	Name        string
 	Description string
-	Parts       []WorkoutPart
 	CreatedBy   string
 }
 
