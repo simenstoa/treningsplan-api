@@ -117,7 +117,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]models.Workout, error) {
 
 	sqlStatement :=
 		`SELECT 
-       			w.workout_uid, w.name, w.description,
+       			w.workout_uid, w.name, w.description, w.created_by_uid,
        			wp."order", wp.distance, wp.metric,
        			i.intensity_uid, i.name, i.description, i.coefficient 
 				FROM workout AS w 
@@ -142,7 +142,7 @@ func (c *client) GetWorkouts(ctx context.Context) ([]models.Workout, error) {
 		var part models.WorkoutPart
 		var intensity models.Intensity
 		err = rows.Scan(
-			&workout.Id, &workout.Name, &workout.Description,
+			&workout.Id, &workout.Name, &workout.Description, &workout.CreatedBy,
 			&part.Order, &part.Distance, &part.Metric,
 			&intensity.Id, &intensity.Name, &intensity.Description, &intensity.Coefficient,
 		)
@@ -183,7 +183,7 @@ func (c *client) GetWorkout(ctx context.Context, id string) (models.Workout, err
 
 	sqlStatement :=
 		`SELECT 
-       			w.workout_uid, w.name, w.description, w.profile_uid,
+       			w.workout_uid, w.name, w.description, w.created_by_uid,
        			wp."order", wp.distance, wp.metric,
        			i.intensity_uid, i.name, i.description, i.coefficient 
 				FROM workout AS w 
